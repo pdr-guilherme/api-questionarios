@@ -37,6 +37,8 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
 ]
 
+LOCAL_APPS = ["users"]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
