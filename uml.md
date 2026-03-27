@@ -14,7 +14,6 @@ erDiagram
 
     USER {
         uuid id PK
-        string username
         string email
         string role
         boolean is_active
