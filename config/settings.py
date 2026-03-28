@@ -144,6 +144,17 @@ AUTHENTICATION_BACKENDS = [
     "users.backends.EmailBackend",
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
+}
+
 ACCOUNT_LOGIN_METHODS = ["email"]
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+
+REST_AUTH = {
+    "LOGIN_SERIALIZER": "users.api.serializers.CustomLoginSerializer",
+    "USER_DETAILS_SERIALIZER": "users.api.serializers.CustomUserDetailsSerializer",
+    "REGISTER_SERIALIZER": "users.api.serializers.CustomRegisterSerializer",
+}
