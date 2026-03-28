@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -33,12 +34,17 @@ ALLOWED_HOSTS = []
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
+    # authentication and registration
     "dj_rest_auth",
-    "drf_spectacular",
     "dj_rest_auth.registration",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    # jwt
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",  # logout
+    # docs
+    "drf_spectacular",
 ]
 
 LOCAL_APPS = ["users"]
@@ -147,6 +153,7 @@ AUTHENTICATION_BACKENDS = [
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["dj_rest_auth.jwt_auth.JWTCookieAuthentication"],
 }
 
 ACCOUNT_LOGIN_METHODS = ["email"]
@@ -157,4 +164,19 @@ REST_AUTH = {
     "LOGIN_SERIALIZER": "users.api.serializers.CustomLoginSerializer",
     "USER_DETAILS_SERIALIZER": "users.api.serializers.CustomUserDetailsSerializer",
     "REGISTER_SERIALIZER": "users.api.serializers.CustomRegisterSerializer",
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "access",
+    "JWT_AUTH_REFRESH_COOKIE": "refresh",
+    "JWT_AUTH_HTTPONLY": False,
+    "JWT_AUTH_SECURE": False,  # True in production!
+    "JWT_AUTH_SAMESITE": "Lax",
+}
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
 }
