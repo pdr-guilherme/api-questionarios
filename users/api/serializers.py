@@ -1,9 +1,12 @@
 from allauth.account.adapter import get_adapter
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from dj_rest_auth.serializers import LoginSerializer, UserDetailsSerializer
+from django.core.mail import send_mail
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from users.models import User
+from users.utils import create_password
 
 
 class CustomLoginSerializer(LoginSerializer):
@@ -46,4 +49,38 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.save()
 
         self.custom_signup(request, user)
+        return user
+
+
+class RespondentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "email"]
+        read_only_fields = ["id"]
+
+    def create(self, validated_data):
+        email = validated_data["email"]
+
+        password = create_password()
+
+        user = User(
+            email=email,
+            role=User.RoleChoices.RESPONDENT,
+            is_active=True,
+        )
+        user.set_password(password)
+        user.save()
+
+        message = (
+            f"Sua senha é: {password}\nÉ fortemente recomendado alterar sua "
+            "senha após o primeiro login."
+        )
+
+        send_mail(
+            subject=_("Sua conta foi criada"),
+            message=_(message),
+            from_email=None,
+            recipient_list=[email],
+        )
+
         return user

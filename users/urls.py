@@ -1,9 +1,9 @@
 from django.urls import path
 
-from users import views
+from users.api.views import RespondentCreateView
 
 app_name = "users"
 
 urlpatterns = [
-    path("users/", views.index, name="index"),
+    path("respondents/", RespondentCreateView.as_view(), name="respondent_create"),
 ]
