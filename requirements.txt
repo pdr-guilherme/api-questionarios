@@ -12,7 +12,10 @@ dj-rest-auth==7.2.0
 Django==6.0.3
 django-allauth==65.15.0
 djangorestframework==3.17.1
+djangorestframework_simplejwt==5.5.1
 drf-spectacular==0.29.0
+factory_boy==3.3.3
+Faker==40.11.1
 filelock==3.25.2
 identify==2.6.18
 idna==3.11
