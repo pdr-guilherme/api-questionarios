@@ -47,7 +47,10 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
 ]
 
-LOCAL_APPS = ["users"]
+LOCAL_APPS = [
+    "users",
+    "core",
+]
 
 INSTALLED_APPS = (
     [
