@@ -1,7 +1,7 @@
 import secrets
 import string
 
-ALPHABET = string.ascii_letters + string.digits + string.punctuation
+ALPHABET = string.ascii_letters + string.digits
 
 
 def create_password(length: int = 16) -> str:
