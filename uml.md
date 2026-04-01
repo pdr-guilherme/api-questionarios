@@ -23,6 +23,7 @@ erDiagram
 
     SURVEY {
         uuid id PK
+        uuid author_id FK
         string title
         string status
         uuid created_by FK
