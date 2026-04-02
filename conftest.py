@@ -1,7 +1,7 @@
 from typing import cast
 
 import pytest
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APIRequestFactory
 
 from users.models import User
 from users.tests.factories import AdminFactory, UserFactory
@@ -20,6 +20,12 @@ def fast_hasher(settings):
 def api_client():
     """Creates an `rest_framework.test.APIClient` instance"""
     return APIClient()
+
+
+@pytest.fixture
+def request_factory():
+    """Creates an `rest_framework.test.APIRequestFactory` instance"""
+    return APIRequestFactory()
 
 
 @pytest.fixture

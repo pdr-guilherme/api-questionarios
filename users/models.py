@@ -1,27 +1,9 @@
-import uuid
-
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-
-class UUIDPrimaryKeyModel(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    class Meta:
-        abstract = True
-
-    def __str__(self) -> str:
-        return str(self.id)
-
-
-class TimeStampedModel(models.Model):
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("edited at"), auto_now=True)
-
-    class Meta:
-        abstract = True
+from core.models import TimeStampedModel, UUIDPrimaryKeyModel
 
 
 class CustomUserManager(BaseUserManager):
