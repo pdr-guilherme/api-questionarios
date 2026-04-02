@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 
+from django.utils.translation import gettext_lazy as _
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -187,6 +189,23 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "",
     "VERSION": "0.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "displayOperationId": True,
+    },
+    "SORT_OPERATIONS": True,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SERVE_PUBLIC": True,
+    "TAGS": [
+        {
+            "name": "auth",
+            "description": _(
+                "Operações relacionadas ao cadastro e autenticação de usuários"
+            ),
+        },
+        {"name": "surveys", "description": _("Operações com formulários")},
+        {"name": "respondents", "description": _("Operações com respondentes")},
+    ],
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
