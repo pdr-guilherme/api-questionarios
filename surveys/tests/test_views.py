@@ -1,0 +1,133 @@
+import uuid
+
+import pytest
+from django.urls import reverse
+from rest_framework import status
+
+from surveys.tests.factories import SurveyFactory
+
+
+@pytest.mark.django_db
+def test_survey_create(api_client, admin_user):
+    data = {"title": "my survey", "status": "draft"}
+    url = reverse("surveys:survey-list")
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.post(url, data=data, format="json")
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["title"] == data["title"]
+    assert response.data["status"] == data["status"]
+
+
+@pytest.mark.django_db
+def test_survey_create_non_admin(api_client, respondent_user):
+    url = reverse("surveys:survey-list")
+    api_client.force_authenticate(respondent_user)
+
+    response = api_client.post(url, data={}, format="json")
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_survey_list(api_client, admin_user):
+    SurveyFactory.create_batch(5, author=admin_user)
+    url = reverse("surveys:survey-list")
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 5
+    assert len(response.data["results"]) == 5
+
+
+@pytest.mark.django_db
+def test_survey_list_non_admin(api_client, respondent_user):
+    url = reverse("surveys:survey-list")
+    api_client.force_authenticate(respondent_user)
+
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_survey_detail(api_client, admin_user):
+    survey = SurveyFactory(author=admin_user)
+    url = reverse("surveys:survey-detail", kwargs={"pk": str(survey.id)})
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["title"] == survey.title
+    assert response.data["status"] == survey.status
+
+
+@pytest.mark.django_db
+def test_survey_detail_non_admin(api_client, respondent_user):
+    url = reverse("surveys:survey-detail", kwargs={"pk": str(uuid.uuid4())})
+    api_client.force_authenticate(respondent_user)
+
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_survey_update(api_client, admin_user):
+    survey = SurveyFactory(author=admin_user)
+    data = {"title": "new title", "status": "published"}
+    url = reverse("surveys:survey-detail", kwargs={"pk": str(survey.id)})
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.put(url, data=data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["title"] == data["title"]
+    assert response.data["status"] == data["status"]
+
+
+@pytest.mark.django_db
+def test_survey_update_non_admin(api_client, respondent_user):
+    url = reverse("surveys:survey-detail", kwargs={"pk": str(uuid.uuid4())})
+    api_client.force_authenticate(respondent_user)
+
+    response = api_client.put(url, data={}, format="json")
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_survey_partial_update(api_client, admin_user):
+    survey = SurveyFactory(author=admin_user)
+    data = {"status": "published"}
+    url = reverse("surveys:survey-detail", kwargs={"pk": str(survey.id)})
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.patch(url, data=data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["title"] == survey.title
+    assert response.data["status"] == data["status"]
+
+
+@pytest.mark.django_db
+def test_survey_partial_update_non_admin(api_client, respondent_user):
+    url = reverse("surveys:survey-detail", kwargs={"pk": str(uuid.uuid4())})
+    api_client.force_authenticate(respondent_user)
+
+    response = api_client.patch(url, data={}, format="json")
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_survey_delete(api_client, admin_user):
+    survey = SurveyFactory(author=admin_user)
+    url = reverse("surveys:survey-detail", kwargs={"pk": str(survey.id)})
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_survey_delete_non_admin(api_client, respondent_user):
+    url = reverse("surveys:survey-detail", kwargs={"pk": str(uuid.uuid4())})
+    api_client.force_authenticate(respondent_user)
+
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
