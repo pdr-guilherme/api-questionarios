@@ -9,7 +9,7 @@ from surveys.tests.factories import SurveyFactory
 
 @pytest.mark.django_db
 def test_survey_to_str():
-    survey = SurveyFactory()
+    survey = SurveyFactory.build()
     assert str(survey) == survey.title
 
 
