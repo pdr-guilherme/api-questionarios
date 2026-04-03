@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.core.validators import MinValueValidator
+from django.db import models, transaction
+from django.db.models import Max
 from django.utils.translation import gettext_lazy as _
 
 from core.models import TimeStampedModel, UUIDPrimaryKeyModel
@@ -46,3 +48,45 @@ class Survey(UUIDPrimaryKeyModel, TimeStampedModel):
 
     def __str__(self) -> str:
         return self.title
+
+
+class Question(UUIDPrimaryKeyModel, TimeStampedModel):
+    survey = models.ForeignKey(
+        Survey,
+        verbose_name=_("survey"),
+        on_delete=models.CASCADE,
+        related_name="questions",
+    )
+    text = models.CharField(_("question text"), max_length=255)
+    order = models.PositiveSmallIntegerField(
+        _("order"), validators=[MinValueValidator(1)]
+    )
+    is_required = models.BooleanField(_("is required"), default=True)
+
+    class Meta:
+        db_table = "questions"
+        verbose_name = _("question")
+        verbose_name_plural = _("questions")
+        ordering = ["survey__title", "order"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["survey", "order"],
+                name="unique_survey_order",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.text
+
+    def save(self, *args, **kwargs):
+        if self.order is None:
+            with transaction.atomic():
+                last_order = (
+                    Question.objects.select_for_update()
+                    .filter(survey=self.survey)
+                    .aggregate(Max("order"))["order__max"]
+                )
+                self.order = (last_order or 0) + 1
+
+        super().save(*args, **kwargs)
