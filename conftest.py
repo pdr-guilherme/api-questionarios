@@ -16,6 +16,11 @@ def fast_hasher(settings):
     settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 
+@pytest.fixture(autouse=True)
+def media_root(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path / "media"
+
+
 @pytest.fixture
 def api_client():
     """Creates an `rest_framework.test.APIClient` instance"""

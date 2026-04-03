@@ -1,6 +1,7 @@
 import factory
 
-from surveys.models import Question, Survey
+from surveys.models import Question, QuestionImage, Survey
+from surveys.tests.helpers import make_image
 from users.tests.factories import UserFactory
 
 
@@ -26,4 +27,23 @@ class QuestionFactory(factory.django.DjangoModelFactory):
         try:
             return Question.objects.latest("order").order + 1
         except Question.DoesNotExist:
+            return 1
+
+
+class QuestionImageFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = QuestionImage
+
+    question = factory.SubFactory(QuestionFactory)
+    file = factory.LazyFunction(make_image)
+    order = factory.Sequence(int)
+
+    class Params:
+        auto_order = factory.Trait(order=None)
+
+    @classmethod
+    def _setup_next_sequence(cls):
+        try:
+            return QuestionImage.objects.latest("order").order + 1
+        except QuestionImage.DoesNotExist:
             return 1
