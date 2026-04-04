@@ -64,7 +64,7 @@ class Question(UUIDPrimaryKeyModel, TimeStampedModel):
     )
     text = models.CharField(_("question text"), max_length=255)
     order = models.PositiveSmallIntegerField(
-        _("order"), validators=[MinValueValidator(1)]
+        _("order"), blank=True, null=True, validators=[MinValueValidator(1)]
     )
     is_required = models.BooleanField(_("is required"), default=True)
 
@@ -106,7 +106,7 @@ class QuestionImage(UUIDPrimaryKeyModel):
     )
     file = models.ImageField(_("file"), upload_to="question_images/")
     order = models.PositiveSmallIntegerField(
-        _("order"), blank=True, validators=[MinValueValidator(1)]
+        _("order"), blank=True, null=True, validators=[MinValueValidator(1)]
     )
     uploaded_at = models.DateTimeField(_("uploaded at"), auto_now_add=True)
 
