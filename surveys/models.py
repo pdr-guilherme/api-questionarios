@@ -1,4 +1,5 @@
 import os
+import uuid
 from io import BytesIO
 
 from django.conf import settings
@@ -97,6 +98,11 @@ class Question(UUIDPrimaryKeyModel, TimeStampedModel):
         super().save(*args, **kwargs)
 
 
+def question_image_upload_to(instance, filename):
+    ext = os.path.splitext(filename)[-1].lower() or ".jpg"
+    return f"question_images/{instance.question_id}/{uuid.uuid4()}{ext}"
+
+
 class QuestionImage(UUIDPrimaryKeyModel):
     question = models.ForeignKey(
         Question,
@@ -104,10 +110,11 @@ class QuestionImage(UUIDPrimaryKeyModel):
         on_delete=models.CASCADE,
         related_name="question_images",
     )
-    file = models.ImageField(_("file"), upload_to="question_images/")
+    file = models.ImageField(_("file"), upload_to=question_image_upload_to)
     order = models.PositiveSmallIntegerField(
         _("order"), blank=True, null=True, validators=[MinValueValidator(1)]
     )
+    alt_text = models.CharField(_("alternative text"), max_length=255, blank=True)
     uploaded_at = models.DateTimeField(_("uploaded at"), auto_now_add=True)
 
     class Meta:

@@ -37,6 +37,7 @@ class QuestionImageFactory(factory.django.DjangoModelFactory):
     question = factory.SubFactory(QuestionFactory)
     file = factory.LazyFunction(make_image)
     order = factory.Sequence(int)
+    alt_text = factory.Faker("sentence")
 
     class Params:
         auto_order = factory.Trait(order=None)

@@ -187,7 +187,7 @@ def test_question_image_to_serializer(context):
 def test_serializer_to_question_image():
     question = QuestionFactory()
     data = {
-        "file": make_image(name="file.jpg"),
+        "file": make_image(),
         "order": 1,
     }
     serializer = QuestionImageSerializer(data=data)
@@ -197,7 +197,7 @@ def test_serializer_to_question_image():
     assert isinstance(question_image, QuestionImage)
     assert str(question_image.question.id) == str(question.id)
     assert question_image.order == data["order"]
-    assert question_image.file.name == "question_images/file.jpg"
+    assert f"question_images/{question.id}/" in question_image.file.name
 
 
 @pytest.mark.django_db
