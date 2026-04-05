@@ -49,8 +49,8 @@ def test_question_image_ordering_within_question():
     question_image2 = QuestionImageFactory(question=question, order=1)
     question_image3 = QuestionImageFactory(question=question, order=3)
 
-    question_images = list(question.question_images.all())
-    assert question_images == [question_image2, question_image1, question_image3]
+    images = list(question.images.all())
+    assert images == [question_image2, question_image1, question_image3]
 
 
 def test_question_image_order_is_isolated_per_question():
@@ -61,8 +61,8 @@ def test_question_image_order_is_isolated_per_question():
     question_image2 = QuestionImageFactory(question=question1, auto_order=True)
     question_image3 = QuestionImageFactory(question=question2, auto_order=True)
 
-    image_list1 = list(question1.question_images.all())
-    image_list2 = list(question2.question_images.all())
+    image_list1 = list(question1.images.all())
+    image_list2 = list(question2.images.all())
 
     assert image_list1 == [question_image1, question_image2]
     assert image_list2 == [question_image3]

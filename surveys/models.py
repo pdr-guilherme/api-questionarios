@@ -108,7 +108,7 @@ class QuestionImage(UUIDPrimaryKeyModel):
         Question,
         verbose_name=_("question"),
         on_delete=models.CASCADE,
-        related_name="question_images",
+        related_name="images",
     )
     file = models.ImageField(_("file"), upload_to=question_image_upload_to)
     order = models.PositiveSmallIntegerField(
@@ -118,9 +118,9 @@ class QuestionImage(UUIDPrimaryKeyModel):
     uploaded_at = models.DateTimeField(_("uploaded at"), auto_now_add=True)
 
     class Meta:
-        db_table = "question_images"
-        verbose_name = _("question image")
-        verbose_name_plural = _("question images")
+        db_table = "images"
+        verbose_name = _("image")
+        verbose_name_plural = _("images")
         ordering = ["question", "order"]
 
         constraints = [

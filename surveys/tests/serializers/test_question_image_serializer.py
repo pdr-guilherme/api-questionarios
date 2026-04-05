@@ -74,5 +74,5 @@ def test_serializer_to_many_question_images_auto_order():
 
     question_images = serializer.save(question=question)
     assert isinstance(question_images, list)
-    for count, question_images in enumerate(question_images, start=1):
-        assert question_images.order == count
+    for count, question_image in enumerate(question_images, start=1):
+        assert question_image.order == count

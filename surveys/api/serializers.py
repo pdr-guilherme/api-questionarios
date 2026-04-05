@@ -52,7 +52,7 @@ class QuestionImageSerializer(serializers.ModelSerializer):
 
 # used for detail views
 class QuestionDetailSerializer(serializers.ModelSerializer):
-    question_images = QuestionImageSerializer(many=True)
+    images = QuestionImageSerializer(many=True)
 
     class Meta:
         model = Question
@@ -60,10 +60,10 @@ class QuestionDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def create(self, validated_data):
-        question_images_data = validated_data.pop("question_images")
+        images_data = validated_data.pop("images")
         question = Question.objects.create(**validated_data)
 
-        for image_data in question_images_data:
+        for image_data in images_data:
             serializer = QuestionImageSerializer(data=image_data)
             serializer.is_valid(raise_exception=True)
             serializer.save(question=question)

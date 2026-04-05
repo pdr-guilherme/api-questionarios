@@ -132,13 +132,13 @@ def test_question_to_question_detail_serializer():
     question = QuestionFactory()
     QuestionImageFactory.create_batch(5, question=question)
     question.refresh_from_db()
-    assert question.question_images.exists()
+    assert question.images.exists()
 
     question_detail_serializer = QuestionDetailSerializer(instance=question)
     assert isinstance(question_detail_serializer.data, dict)
     assert question_detail_serializer.data["id"] == str(question.id)
-    assert "question_images" in question_detail_serializer.data
-    assert isinstance(question_detail_serializer.data["question_images"], list)
+    assert "images" in question_detail_serializer.data
+    assert isinstance(question_detail_serializer.data["images"], list)
 
 
 def test_question_detail_serializer_create_images():
@@ -146,7 +146,7 @@ def test_question_detail_serializer_create_images():
     data = {
         "survey": str(survey.id),
         "text": "test text",
-        "question_images": [
+        "images": [
             {"file": make_image(name="file1.jpg")},
             {"file": make_image(name="file2.jpg")},
             {"file": make_image(name="file3.jpg")},
@@ -158,7 +158,4 @@ def test_question_detail_serializer_create_images():
     question = serializer.save()
     assert isinstance(question, Question)
     assert question.id is not None
-    assert question.question_images.exists()  # type:ignore
-    assert question.id is not None
-    assert question.question_images.exists()  # type:ignore
-    assert question.question_images.exists()  # type:ignore
+    assert question.images.exists()  # type:ignore
