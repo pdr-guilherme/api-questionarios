@@ -126,7 +126,7 @@ class QuestionImage(UUIDPrimaryKeyModel):
         constraints = [
             models.UniqueConstraint(
                 fields=["question", "order"],
-                name="unique_question_order",
+                name="unique_question_image_order",
             )
         ]
 
@@ -165,3 +165,46 @@ class QuestionImage(UUIDPrimaryKeyModel):
 
         filename = os.path.splitext(self.file.name)[0] + ".jpg"
         self.file.save(filename, ContentFile(buffer.read()), save=False)
+
+
+class Option(UUIDPrimaryKeyModel):
+    question = models.ForeignKey(
+        Question,
+        verbose_name=_("question"),
+        on_delete=models.CASCADE,
+        related_name="options",
+    )
+    text = models.TextField(_("text"))
+    order = models.PositiveSmallIntegerField(
+        _("order"), blank=True, null=True, validators=[MinValueValidator(1)]
+    )
+
+    class Meta:
+        db_table = "option"
+        verbose_name = _("option")
+        verbose_name_plural = _("options")
+        ordering = ["question", "order"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["question", "order"],
+                name="unique_question_option_order",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return _('Option {order} for question "{question}": {text}').format(
+            order=self.order, question=self.question, text=self.text
+        )
+
+    def save(self, *args, **kwargs):
+        if self.order is None:
+            with transaction.atomic():
+                last_order = (
+                    Option.objects.select_for_update()
+                    .filter(question=self.question)
+                    .aggregate(Max("order"))["order__max"]
+                )
+                self.order = (last_order or 0) + 1
+
+        super().save(*args, **kwargs)
