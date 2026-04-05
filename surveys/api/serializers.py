@@ -1,7 +1,7 @@
 from django.db.models import Max
 from rest_framework import serializers
 
-from surveys.models import Question, QuestionImage, Survey
+from surveys.models import Option, Question, QuestionImage, Survey
 
 
 class SurveySerializer(serializers.ModelSerializer):
@@ -42,6 +42,25 @@ class QuestionImageSerializer(serializers.ModelSerializer):
             question = validated_data["question"]
 
             last_order = QuestionImage.objects.filter(question=question).aggregate(
+                Max("order")
+            )["order__max"]
+
+            validated_data["order"] = (last_order or 0) + 1
+
+        return super().create(validated_data)
+
+
+class OptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Option
+        fields = "__all__"
+        read_only_fields = ["id", "question"]
+
+    def create(self, validated_data):
+        if validated_data.get("order") is None:
+            question = validated_data["question"]
+
+            last_order = Option.objects.filter(question=question).aggregate(
                 Max("order")
             )["order__max"]
 
