@@ -7,11 +7,11 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
-from django.db.models import Max
 from django.utils.translation import gettext_lazy as _
 from PIL import Image
 
 from core.models import TimeStampedModel, UUIDPrimaryKeyModel
+from surveys.utils import get_next_order
 
 
 class Survey(UUIDPrimaryKeyModel, TimeStampedModel):
@@ -88,12 +88,10 @@ class Question(UUIDPrimaryKeyModel, TimeStampedModel):
     def save(self, *args, **kwargs):
         if self.order is None:
             with transaction.atomic():
-                last_order = (
-                    Question.objects.select_for_update()
-                    .filter(survey=self.survey)
-                    .aggregate(Max("order"))["order__max"]
+                next_order = get_next_order(
+                    Question, survey=self.survey, select_for_update=True
                 )
-                self.order = (last_order or 0) + 1
+                self.order = next_order
 
         super().save(*args, **kwargs)
 
@@ -141,12 +139,10 @@ class QuestionImage(UUIDPrimaryKeyModel):
 
         if self.order is None:
             with transaction.atomic():
-                last_order = (
-                    QuestionImage.objects.select_for_update()
-                    .filter(question=self.question)
-                    .aggregate(Max("order"))["order__max"]
+                next_order = get_next_order(
+                    QuestionImage, question=self.question, select_for_update=True
                 )
-                self.order = (last_order or 0) + 1
+                self.order = next_order
 
         super().save(*args, **kwargs)
 
@@ -200,11 +196,9 @@ class Option(UUIDPrimaryKeyModel):
     def save(self, *args, **kwargs):
         if self.order is None:
             with transaction.atomic():
-                last_order = (
-                    Option.objects.select_for_update()
-                    .filter(question=self.question)
-                    .aggregate(Max("order"))["order__max"]
+                next_order = get_next_order(
+                    Option, question=self.question, select_for_update=True
                 )
-                self.order = (last_order or 0) + 1
+                self.order = next_order
 
         super().save(*args, **kwargs)

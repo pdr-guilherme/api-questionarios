@@ -1,7 +1,7 @@
-from django.db.models import Max
 from rest_framework import serializers
 
 from surveys.models import Option, Question, QuestionImage, Survey
+from surveys.utils import get_next_order
 
 
 class SurveySerializer(serializers.ModelSerializer):
@@ -21,12 +21,8 @@ class QuestionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if validated_data.get("order") is None:
             survey = validated_data["survey"]
-
-            last_order = Question.objects.filter(survey=survey).aggregate(Max("order"))[
-                "order__max"
-            ]
-
-            validated_data["order"] = (last_order or 0) + 1
+            next_order = get_next_order(Question, survey=survey)
+            validated_data["order"] = next_order
 
         return super().create(validated_data)
 
@@ -40,12 +36,8 @@ class QuestionImageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if validated_data.get("order") is None:
             question = validated_data["question"]
-
-            last_order = QuestionImage.objects.filter(question=question).aggregate(
-                Max("order")
-            )["order__max"]
-
-            validated_data["order"] = (last_order or 0) + 1
+            next_order = get_next_order(QuestionImage, question=question)
+            validated_data["order"] = next_order
 
         return super().create(validated_data)
 
@@ -59,12 +51,8 @@ class OptionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if validated_data.get("order") is None:
             question = validated_data["question"]
-
-            last_order = Option.objects.filter(question=question).aggregate(
-                Max("order")
-            )["order__max"]
-
-            validated_data["order"] = (last_order or 0) + 1
+            next_order = get_next_order(Option, question=question)
+            validated_data["order"] = next_order
 
         return super().create(validated_data)
 
