@@ -159,3 +159,23 @@ def test_question_detail_serializer_create_images():
     assert isinstance(question, Question)
     assert question.id is not None
     assert question.images.exists()  # type:ignore
+
+
+def test_question_detail_serializer_create_options():
+    survey = SurveyFactory()
+    data = {
+        "survey": str(survey.id),
+        "text": "test text",
+        "options": [
+            {"text": "option 1"},
+            {"text": "option 2"},
+            {"text": "option 3"},
+        ],
+    }
+    serializer = QuestionDetailSerializer(data=data)
+    assert serializer.is_valid(), serializer.errors
+
+    question = serializer.save()
+    assert isinstance(question, Question)
+    assert question.id is not None
+    assert question.options.exists()  # type:ignore

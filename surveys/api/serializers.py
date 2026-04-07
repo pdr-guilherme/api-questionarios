@@ -59,7 +59,8 @@ class OptionSerializer(serializers.ModelSerializer):
 
 # used for detail views
 class QuestionDetailSerializer(serializers.ModelSerializer):
-    images = QuestionImageSerializer(many=True)
+    images = QuestionImageSerializer(many=True, required=False)
+    options = OptionSerializer(many=True, required=False)
 
     class Meta:
         model = Question
@@ -67,12 +68,20 @@ class QuestionDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def create(self, validated_data):
-        images_data = validated_data.pop("images")
+        images_data = validated_data.pop("images", None)
+        options_data = validated_data.pop("options", None)
         question = Question.objects.create(**validated_data)
 
-        for image_data in images_data:
-            serializer = QuestionImageSerializer(data=image_data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save(question=question)
+        if images_data is not None:
+            for image_data in images_data:
+                serializer = QuestionImageSerializer(data=image_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save(question=question)
+
+        if options_data is not None:
+            for option_data in options_data:
+                serializer = OptionSerializer(data=option_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save(question=question)
 
         return question
