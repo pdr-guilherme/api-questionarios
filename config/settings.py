@@ -205,6 +205,15 @@ SPECTACULAR_SETTINGS = {
         },
         {"name": "surveys", "description": _("Operações com formulários")},
         {"name": "respondents", "description": _("Operações com respondentes")},
+        {"name": "questions", "description": _("Operações com perguntas")},
+        {
+            "name": "question_images",
+            "description": _("Operações com imagens para perguntas"),
+        },
+        {
+            "name": "options",
+            "description": _("Operações com opções de resposta para perguntas"),
+        },
     ],
 }
 
