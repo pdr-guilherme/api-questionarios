@@ -24,6 +24,3 @@ def test_survey_transition_to_invalid():
     survey = cast(Survey, SurveyFactory(status=Survey.StatusChoices.DRAFT))
     with pytest.raises(ValidationError, match="inválida"):
         survey.transition_to(Survey.StatusChoices.CLOSED)
-    with pytest.raises(ValidationError, match="inválida"):
-        survey.transition_to(Survey.StatusChoices.CLOSED)
-        survey.transition_to(Survey.StatusChoices.CLOSED)
