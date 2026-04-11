@@ -22,6 +22,9 @@ class QuestionFactory(factory.django.DjangoModelFactory):
     text = factory.Faker("sentence")
     order = factory.Sequence(int)
 
+    class Params:
+        auto_order = factory.Trait(order=None)
+
     @classmethod
     def _setup_next_sequence(cls):
         try:
