@@ -3,8 +3,8 @@ from typing import cast
 import pytest
 from rest_framework.test import APIClient, APIRequestFactory
 
-from users.models import User
-from users.tests.factories import AdminFactory, UserFactory
+from apps.users.models import User
+from apps.users.tests.factories import AdminFactory, UserFactory
 
 
 @pytest.fixture(autouse=True)

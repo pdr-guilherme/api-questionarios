@@ -51,7 +51,7 @@ THIRD_PARTY_APPS = [
     "django_cleanup.apps.CleanupSelectedConfig",
 ]
 
-LOCAL_APPS = ["users", "core", "surveys"]
+LOCAL_APPS = ["apps.users", "apps.core", "apps.surveys"]
 
 INSTALLED_APPS = (
     [
@@ -151,7 +151,7 @@ AUTH_USER_MODEL = "users.User"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "users.backends.EmailBackend",
+    "apps.users.backends.EmailBackend",
 ]
 
 REST_FRAMEWORK = {
@@ -166,9 +166,9 @@ ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
 REST_AUTH = {
-    "LOGIN_SERIALIZER": "users.api.serializers.CustomLoginSerializer",
-    "USER_DETAILS_SERIALIZER": "users.api.serializers.CustomUserDetailsSerializer",
-    "REGISTER_SERIALIZER": "users.api.serializers.CustomRegisterSerializer",
+    "LOGIN_SERIALIZER": "apps.users.api.serializers.CustomLoginSerializer",
+    "USER_DETAILS_SERIALIZER": "apps.users.api.serializers.CustomUserDetailsSerializer",
+    "REGISTER_SERIALIZER": "apps.users.api.serializers.CustomRegisterSerializer",
     "USE_JWT": True,
     "JWT_AUTH_COOKIE": "access",
     "JWT_AUTH_REFRESH_COOKIE": "refresh",
