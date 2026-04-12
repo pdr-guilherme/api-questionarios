@@ -47,6 +47,8 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt.token_blacklist",  # logout
     # docs
     "drf_spectacular",
+    # image cleanup
+    "django_cleanup.apps.CleanupSelectedConfig",
 ]
 
 LOCAL_APPS = ["users", "core", "surveys"]

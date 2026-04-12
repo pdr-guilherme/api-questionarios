@@ -8,6 +8,7 @@ from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
+from django_cleanup import cleanup
 from PIL import Image
 
 from core.models import TimeStampedModel, UUIDPrimaryKeyModel
@@ -101,6 +102,7 @@ def question_image_upload_to(instance, filename):
     return f"question_images/{instance.question_id}/{uuid.uuid4()}{ext}"
 
 
+@cleanup.select
 class QuestionImage(UUIDPrimaryKeyModel):
     question = models.ForeignKey(
         Question,
