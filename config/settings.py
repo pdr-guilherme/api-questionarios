@@ -47,6 +47,8 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt.token_blacklist",  # logout
     # docs
     "drf_spectacular",
+    # image cleanup
+    "django_cleanup.apps.CleanupSelectedConfig",
 ]
 
 LOCAL_APPS = ["users", "core", "surveys"]
@@ -205,7 +207,19 @@ SPECTACULAR_SETTINGS = {
         },
         {"name": "surveys", "description": _("Operações com formulários")},
         {"name": "respondents", "description": _("Operações com respondentes")},
+        {"name": "questions", "description": _("Operações com perguntas")},
+        {
+            "name": "question_images",
+            "description": _("Operações com imagens para perguntas"),
+        },
+        {
+            "name": "options",
+            "description": _("Operações com opções de resposta para perguntas"),
+        },
     ],
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

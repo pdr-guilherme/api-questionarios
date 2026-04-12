@@ -4,26 +4,19 @@ from surveys.api.serializers import SurveySerializer
 from surveys.models import Survey
 from surveys.tests.factories import SurveyFactory
 
-
-@pytest.fixture
-def context(request_factory, admin_user):
-    request = request_factory.post("/")
-    request.user = admin_user
-    return {"request": request}
+pytestmark = pytest.mark.django_db
 
 
-@pytest.mark.django_db
 def test_survey_to_serializer(context):
     survey = SurveyFactory()
     serializer = SurveySerializer(instance=survey, context=context)
     assert serializer.data["title"] == survey.title  # type:ignore
 
 
-@pytest.mark.django_db
 def test_serializer_to_survey(context):
     data = {"title": "minha pesquisa", "status": Survey.StatusChoices.DRAFT}
     serializer = SurveySerializer(data=data, context=context)
-    assert serializer.is_valid()
+    assert serializer.is_valid(), serializer.errors
 
     survey = serializer.save()
     assert isinstance(survey, Survey)
@@ -31,9 +24,8 @@ def test_serializer_to_survey(context):
     assert survey.status == data["status"]
 
 
-@pytest.mark.django_db
-def test_serializer_data_invalid(context):
+def test_survey_serializer_data_invalid(context):
     data = {"title": None, "status": Survey.StatusChoices.DRAFT}
     serializer = SurveySerializer(data=data, context=context)
-    assert not serializer.is_valid()
+    assert not serializer.is_valid(), serializer.errors
     assert "title" in serializer.errors
