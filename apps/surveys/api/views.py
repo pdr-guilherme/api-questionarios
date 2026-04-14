@@ -1,9 +1,12 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
-from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.core.pagination import CustomPagination
 from apps.core.permissions import IsAdmin
@@ -50,6 +53,26 @@ from apps.surveys.models import Option, Question, QuestionImage, Survey
         summary=_("Apagar questionário"),
         description=_("Apaga um questionário do banco de dados"),
     ),
+    publish=extend_schema(
+        operation_id="survey_publish",
+        summary=_("Publicar questionário"),
+        description=_("Altera o status do questionário de rascunho para publicado"),
+        request=None,
+        responses={
+            204: None,
+            400: OpenApiResponse(description=_("Transição de status inválida")),
+        },
+    ),
+    close=extend_schema(
+        operation_id="survey_close",
+        summary=_("Encerrar questionário"),
+        description=_("Altera o status do questionário de publicado para encerrado"),
+        request=None,
+        responses={
+            204: None,
+            400: OpenApiResponse(description=_("Transição de status inválida")),
+        },
+    ),
 )
 class SurveyViewSet(viewsets.ModelViewSet):
     serializer_class = SurveySerializer
@@ -64,6 +87,40 @@ class SurveyViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             qs = qs.prefetch_related("questions")
         return qs
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="publish",
+        url_name="publish",
+        serializer_class=None,
+    )
+    def publish(self, request, pk=None):
+        survey = self.get_object()
+
+        try:
+            survey.transition_to(Survey.StatusChoices.PUBLISHED)
+        except ValidationError as e:
+            return Response({"detail": e.message}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="close",
+        url_name="close",
+        serializer_class=None,
+    )
+    def close(self, request, pk=None):
+        survey = self.get_object()
+
+        try:
+            survey.transition_to(Survey.StatusChoices.CLOSED)
+        except ValidationError as e:
+            return Response({"detail": e.message}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema_view(

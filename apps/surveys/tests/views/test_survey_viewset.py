@@ -4,6 +4,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
+from apps.surveys.models import Survey
 from apps.surveys.tests.factories import SurveyFactory
 
 pytestmark = pytest.mark.django_db
@@ -121,3 +122,45 @@ def test_survey_delete_non_admin(api_client, respondent_user):
 
     response = api_client.delete(url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_survey_publish(api_client, admin_user):
+    survey = SurveyFactory(author=admin_user)
+    url = reverse("surveys:survey-publish", kwargs={"pk": str(survey.id)})
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.post(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    survey.refresh_from_db()
+    assert survey.status == Survey.StatusChoices.PUBLISHED
+
+
+def test_survey_publish_from_invalid_status(api_client, admin_user):
+    survey = SurveyFactory(author=admin_user, status=Survey.StatusChoices.CLOSED)
+    url = reverse("surveys:survey-publish", kwargs={"pk": str(survey.id)})
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.post(url)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_survey_close(api_client, admin_user):
+    survey = SurveyFactory(author=admin_user, status=Survey.StatusChoices.PUBLISHED)
+    url = reverse("surveys:survey-close", kwargs={"pk": str(survey.id)})
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.post(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    survey.refresh_from_db()
+    assert survey.status == Survey.StatusChoices.CLOSED
+
+
+def test_survey_close_from_invalid_status(api_client, admin_user):
+    survey = SurveyFactory(author=admin_user, status=Survey.StatusChoices.DRAFT)
+    url = reverse("surveys:survey-close", kwargs={"pk": str(survey.id)})
+    api_client.force_authenticate(admin_user)
+
+    response = api_client.post(url)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
