@@ -51,7 +51,12 @@ THIRD_PARTY_APPS = [
     "django_cleanup.apps.CleanupSelectedConfig",
 ]
 
-LOCAL_APPS = ["apps.users", "apps.core", "apps.surveys"]
+LOCAL_APPS = [
+    "apps.users",
+    "apps.core",
+    "apps.surveys",
+    "apps.answers",
+]
 
 INSTALLED_APPS = (
     [
