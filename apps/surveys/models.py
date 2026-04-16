@@ -13,6 +13,7 @@ from PIL import Image
 
 from apps.core.models import TimeStampedModel, UUIDPrimaryKeyModel
 from apps.surveys.utils import get_next_order
+from apps.users.models import User
 
 
 class Survey(UUIDPrimaryKeyModel, TimeStampedModel):
@@ -32,6 +33,12 @@ class Survey(UUIDPrimaryKeyModel, TimeStampedModel):
         max_length=15,
         choices=StatusChoices.choices,
         default=StatusChoices.DRAFT,
+    )
+    respondents = models.ManyToManyField(
+        User,
+        through="answers.SurveyAccess",
+        related_name="accessible_surveys",
+        blank=True,
     )
 
     VALID_TRANSITIONS: dict[StatusChoices, list[StatusChoices]] = {
