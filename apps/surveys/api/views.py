@@ -8,9 +8,11 @@ from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.answers.models import SurveyAccess
 from apps.core.pagination import CustomPagination
 from apps.core.permissions import IsAdmin
 from apps.surveys.api.serializers import (
+    GrantAccessSerializer,
     OptionSerializer,
     QuestionDetailSerializer,
     QuestionImageSerializer,
@@ -18,6 +20,7 @@ from apps.surveys.api.serializers import (
     SurveySerializer,
 )
 from apps.surveys.models import Option, Question, QuestionImage, Survey
+from apps.users.models import User
 
 
 @extend_schema_view(
@@ -119,6 +122,40 @@ class SurveyViewSet(viewsets.ModelViewSet):
             survey.transition_to(Survey.StatusChoices.CLOSED)
         except ValidationError as e:
             return Response({"detail": e.message}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="grant-access",
+        url_name="grant-access",
+    )
+    def grant_access(self, request, pk=None):
+        survey = self.get_object()
+        serializer = GrantAccessSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = User.objects.get(pk=serializer.validated_data["user_id"])
+        SurveyAccess.objects.get_or_create(survey=survey, user=user)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="revoke-access",
+        url_name="revoke-access",
+    )
+    def revoke_access(self, request, pk=None):
+        survey = self.get_object()
+        serializer = GrantAccessSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        SurveyAccess.objects.filter(
+            survey=survey,
+            user_id=serializer.validated_data["user_id"],
+        ).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

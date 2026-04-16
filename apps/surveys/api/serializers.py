@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.surveys.models import Option, Question, QuestionImage, Survey
 from apps.surveys.utils import get_next_order
+from apps.users.models import User
 
 
 class SurveySerializer(serializers.ModelSerializer):
@@ -85,3 +86,12 @@ class QuestionDetailSerializer(serializers.ModelSerializer):
                 serializer.save(question=question)
 
         return question
+
+
+class GrantAccessSerializer(serializers.Serializer):
+    user_id = serializers.UUIDField()
+
+    def validate_user_id(self, value):
+        if not User.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("Usuário não encontrado.")
+        return value
