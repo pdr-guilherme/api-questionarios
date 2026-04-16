@@ -22,12 +22,6 @@ def media_root(settings, tmp_path):
 
 
 @pytest.fixture
-def api_client():
-    """Creates an `rest_framework.test.APIClient` instance"""
-    return APIClient()
-
-
-@pytest.fixture
 def request_factory():
     """Creates an `rest_framework.test.APIRequestFactory` instance"""
     return APIRequestFactory()
@@ -43,3 +37,19 @@ def admin_user():
 def respondent_user():
     """Creates an respondent user (role=`User.RoleChoices.RESPONDENT`)"""
     return cast(User, UserFactory())
+
+
+@pytest.fixture
+def api_client():
+    """Creates a `rest_framework.test.APIClient` instance for general use"""
+    return APIClient()
+
+
+@pytest.fixture
+def admin_api_client(admin_user):
+    """
+    Creates a `rest_framework.test.APIClient` instance authenticated with `admin_user`
+    """
+    client = APIClient()
+    client.force_authenticate(admin_user)
+    return client
