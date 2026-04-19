@@ -1,3 +1,3 @@
-from .base import IsAdmin
+from .base import HasSurveyAccess, IsAdmin, IsRespondent
 
-__all__ = ["IsAdmin"]
+__all__ = ["IsAdmin", "IsRespondent", "HasSurveyAccess"]
