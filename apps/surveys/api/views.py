@@ -77,6 +77,32 @@ from apps.users.models import User
             400: OpenApiResponse(description=_("Transição de status inválida")),
         },
     ),
+    grant_access=extend_schema(
+        operation_id="survey_grant_access",
+        summary=_("Conceder acesso ao questionário"),
+        description=_("Concede acesso a um respondente para responder o questionário"),
+        request=GrantAccessSerializer,
+        responses={
+            204: None,
+            400: OpenApiResponse(
+                description=_("Usuário inválido ou ausente no payload")
+            ),
+            404: OpenApiResponse(description=_("Questionário não encontrado")),
+        },
+    ),
+    revoke_access=extend_schema(
+        operation_id="survey_revoke_access",
+        summary=_("Revogar acesso ao questionário"),
+        description=_("Revoga o acesso de um respondente ao questionário"),
+        request=GrantAccessSerializer,
+        responses={
+            204: None,
+            400: OpenApiResponse(
+                description=_("Usuário inválido ou ausente no payload")
+            ),
+            404: OpenApiResponse(description=_("Questionário não encontrado")),
+        },
+    ),
 )
 class SurveyViewSet(viewsets.ModelViewSet):
     serializer_class = SurveySerializer

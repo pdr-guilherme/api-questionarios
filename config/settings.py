@@ -221,6 +221,10 @@ SPECTACULAR_SETTINGS = {
             "name": "options",
             "description": _("Operações com opções de resposta para perguntas"),
         },
+        {
+            "name": "assigned_surveys",
+            "description": _("Operações com questionários atribuídos a um respondente"),
+        },
     ],
 }
 
