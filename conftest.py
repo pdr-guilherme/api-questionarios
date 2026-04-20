@@ -53,3 +53,14 @@ def admin_api_client(admin_user):
     client = APIClient()
     client.force_authenticate(admin_user)
     return client
+
+
+@pytest.fixture
+def respondent_api_client(respondent_user):
+    """
+    Creates a `rest_framework.test.APIClient` instance authenticated
+    with `respondent_user`
+    """
+    client = APIClient()
+    client.force_authenticate(respondent_user)
+    return client

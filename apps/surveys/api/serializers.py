@@ -13,6 +13,14 @@ class SurveySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class AssignedSurveySerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField()
+
+    class Meta:
+        model = Survey
+        exclude = ["respondents", "status"]
+
+
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
