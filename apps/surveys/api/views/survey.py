@@ -11,6 +11,7 @@ from apps.core.pagination import CustomPagination
 from apps.core.permissions import IsAdmin
 from apps.surveys.api.serializers import (
     GrantAccessSerializer,
+    SurveyDetailSerializer,
     SurveySerializer,
 )
 from apps.surveys.models import Survey
@@ -98,9 +99,13 @@ from apps.users.models import User
     ),
 )
 class SurveyViewSet(viewsets.ModelViewSet):
-    serializer_class = SurveySerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return SurveyDetailSerializer
+        return SurveySerializer
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.core.pagination import CustomPagination
 from apps.core.permissions import HasSurveyAccess, IsRespondent
 from apps.surveys.api.serializers import (
+    AssignedSurveyDetailSerializer,
     AssignedSurveySerializer,
 )
 from apps.surveys.models import Survey
@@ -32,9 +33,13 @@ from apps.surveys.models import Survey
     ),
 )
 class AssignedSurveyViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = AssignedSurveySerializer
     permission_classes = [IsAuthenticated, IsRespondent, HasSurveyAccess]
     pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return AssignedSurveyDetailSerializer
+        return AssignedSurveySerializer
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

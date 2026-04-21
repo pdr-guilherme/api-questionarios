@@ -54,6 +54,8 @@ def test_survey_detail(admin_api_client, survey):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["title"] == survey.title
     assert response.data["status"] == survey.status
+    assert "questions" in response.data
+    assert "respondents" in response.data
 
 
 def test_survey_detail_non_admin(api_client, respondent_user):

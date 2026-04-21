@@ -9,7 +9,7 @@ from apps.surveys.utils import get_next_order
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = "__all__"
+        fields = ["id", "text", "order", "is_required", "survey"]
         read_only_fields = ["id", "created_at"]
 
     def create(self, validated_data):
@@ -25,10 +25,8 @@ class QuestionDetailSerializer(serializers.ModelSerializer):
     images = QuestionImageSerializer(many=True, required=False)
     options = OptionSerializer(many=True, required=False)
 
-    class Meta:
-        model = Question
-        fields = "__all__"
-        read_only_fields = ["id"]
+    class Meta(QuestionSerializer.Meta):
+        fields = [*QuestionSerializer.Meta.fields, "images", "options"]
 
     def create(self, validated_data):
         images_data = validated_data.pop("images", None)
@@ -47,5 +45,4 @@ class QuestionDetailSerializer(serializers.ModelSerializer):
                 serializer.is_valid(raise_exception=True)
                 serializer.save(question=question)
 
-        return question
         return question

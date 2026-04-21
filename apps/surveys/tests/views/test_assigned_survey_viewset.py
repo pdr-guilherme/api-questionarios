@@ -36,6 +36,7 @@ def test_assigned_survey_detail(respondent_api_client, respondent_survey):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["id"] == str(respondent_survey.id)
     assert response.data["title"] == respondent_survey.title
+    assert "questions" in response.data
 
 
 def test_assigned_survey_detail_unpublished_survey(
