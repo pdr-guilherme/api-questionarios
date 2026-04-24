@@ -11,6 +11,13 @@ from apps.answers.tests.factories import (
 
 
 @pytest.fixture
+def respondent_context(request_factory, respondent_user):
+    request = request_factory.post("/")
+    request.user = respondent_user
+    return {"request": request}
+
+
+@pytest.fixture
 def survey_access(respondent_user):
     return cast(SurveyAccess, SurveyAccessFactory.create(user=respondent_user))
 
