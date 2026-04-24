@@ -70,6 +70,7 @@ erDiagram
         string status
         datetime started_at
         datetime finished_at
+        datetime created_at
         datetime updated_at
     }
 
