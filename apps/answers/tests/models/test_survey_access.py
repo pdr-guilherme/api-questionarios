@@ -9,22 +9,17 @@ from apps.users.tests.factories import UserFactory
 pytestmark = pytest.mark.django_db
 
 
-def test_survey_access_to_str():
-    survey_access = SurveyAccessFactory()
+def test_survey_access_to_str(survey_access):
     assert str(survey_access.user) in str(survey_access)
     assert str(survey_access.survey) in str(survey_access)
 
 
-def test_survey_access_unique_survey_user():
-    user = UserFactory()
-    survey = SurveyFactory()
-    SurveyAccessFactory.create(survey=survey, user=user)
+def test_survey_access_unique_survey_user(survey_access):
     with pytest.raises(IntegrityError):
-        SurveyAccessFactory.create(survey=survey, user=user)
+        SurveyAccessFactory.create(survey=survey_access.survey, user=survey_access.user)
 
 
-def test_survey_access_granted_at():
-    survey_access = SurveyAccessFactory()
+def test_survey_access_granted_at(survey_access):
     assert survey_access.granted_at is not None
 
 
@@ -43,7 +38,6 @@ def test_survey_access_user_delete_cascade():
     assert survey_access.user == user
 
     user.delete()
-    assert SurveyAccess.objects.count() == 0
     assert SurveyAccess.objects.count() == 0
 
 
