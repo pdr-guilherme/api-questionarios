@@ -1,7 +1,17 @@
-from django.urls import path
+from rest_framework.routers import SimpleRouter
+from rest_framework_nested.routers import NestedSimpleRouter
 
-from apps.answers.api.views import answers_index
+from apps.answers.api.views import AnswerViewSet, SubmissionViewSet
+
+app_name = "answers"
+
+router = SimpleRouter()
+router.register("submissions", SubmissionViewSet, basename="submission")
+
+submission_router = NestedSimpleRouter(router, "submissions", lookup="submission")
+submission_router.register("answers", AnswerViewSet, basename="answer")
 
 urlpatterns = [
-    path("answers/", answers_index, name="index"),
+    *router.urls,
+    *submission_router.urls,
 ]
