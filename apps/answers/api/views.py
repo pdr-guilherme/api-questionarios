@@ -1,6 +1,13 @@
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,6 +23,38 @@ from apps.core.permissions import HasSurveyAccess, IsRespondent
 from apps.surveys.models import Survey
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=["submissions"],
+        operation_id="submission_list",
+        summary=_("Listar envios"),
+        description=_("Retorna todos os envios do respondente autenticado"),
+    ),
+    retrieve=extend_schema(
+        tags=["submissions"],
+        operation_id="submission_detail",
+        summary=_("Detalhar envio"),
+        description=_("Retorna os detalhes de um envio, incluindo as respostas"),
+    ),
+    create=extend_schema(
+        tags=["submissions"],
+        operation_id="submission_create",
+        summary=_("Iniciar envio"),
+        description=_("Inicia um novo envio para um questionário publicado"),
+    ),
+    destroy=extend_schema(
+        tags=["submissions"],
+        operation_id="submission_delete",
+        summary=_("Apagar envio"),
+        description=_(
+            "Apaga um envio em rascunho. Envios concluídos não podem ser apagados"
+        ),
+        responses={
+            204: None,
+            403: OpenApiResponse(description=_("Envio já concluído")),
+        },
+    ),
+)
 class SubmissionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsRespondent, HasSurveyAccess]
     pagination_class = CustomPagination
@@ -40,13 +79,63 @@ class SubmissionViewSet(viewsets.ModelViewSet):
 
         if submission.status == Submission.StatusChoices.COMPLETED:
             return Response(
-                {"detail": _("Não é possível apagar uma submission já concluída.")},
+                {"detail": _("Não é possível apagar um envio já concluído.")},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         return super().destroy(request, *args, **kwargs)
 
 
+params = [
+    OpenApiParameter(
+        name="submission_pk",
+        type=OpenApiTypes.UUID,
+        location=OpenApiParameter.PATH,
+        description=_("UUID do envio"),
+    ),
+    OpenApiParameter(
+        name="id",
+        type=OpenApiTypes.UUID,
+        location=OpenApiParameter.PATH,
+        description=_("UUID da resposta"),
+    ),
+]
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=["answers"],
+        operation_id="answer_list",
+        summary=_("Listar respostas"),
+        description=_("Retorna todas as respostas de um envio"),
+        parameters=[params[0]],
+    ),
+    retrieve=extend_schema(
+        tags=["answers"],
+        operation_id="answer_detail",
+        summary=_("Detalhar resposta"),
+        description=_("Retorna os detalhes de uma resposta específica"),
+        parameters=params,
+    ),
+    create=extend_schema(
+        tags=["answers"],
+        operation_id="answer_create",
+        summary=_("Enviar resposta"),
+        description=_("Envia ou substitui a resposta de uma questão no envio"),
+        parameters=params,
+        responses={
+            201: AnswerSerializer,
+            403: OpenApiResponse(description=_("Envio já concluído")),
+        },
+    ),
+    destroy=extend_schema(
+        tags=["answers"],
+        operation_id="answer_delete",
+        summary=_("Apagar resposta"),
+        description=_("Apaga a resposta de uma questão do envio"),
+        parameters=params,
+    ),
+)
 class AnswerViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsRespondent, HasSurveyAccess]
     serializer_class = AnswerSerializer
@@ -76,6 +165,11 @@ class AnswerViewSet(viewsets.ModelViewSet):
         question = serializer.validated_data["question"]
         option = serializer.validated_data["option"]
 
+        Answer.objects.update_or_create(
+            submission=submission,
+            question=question,
+            defaults={"option": option},
+        )
         Answer.objects.update_or_create(
             submission=submission,
             question=question,

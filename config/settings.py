@@ -203,6 +203,11 @@ SPECTACULAR_SETTINGS = {
     "SORT_OPERATIONS": True,
     "COMPONENT_SPLIT_REQUEST": True,
     "SERVE_PUBLIC": True,
+    "ENUM_NAME_OVERRIDES": {
+        "SurveyStatusEnum": "apps.surveys.models.Survey.StatusChoices",
+        "SubmissionStatusEnum": "apps.answers.models.Submission.StatusChoices",
+    },
+    "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
     "TAGS": [
         {
             "name": "auth",
@@ -224,6 +229,14 @@ SPECTACULAR_SETTINGS = {
         {
             "name": "assigned_surveys",
             "description": _("Operações com questionários atribuídos a um respondente"),
+        },
+        {
+            "name": "submissions",
+            "description": _("Operações com envios de respostas a questionários"),
+        },
+        {
+            "name": "answers",
+            "description": _("Operações com respostas específicas de um envio"),
         },
     ],
 }
