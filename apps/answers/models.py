@@ -103,6 +103,21 @@ class Submission(UUIDPrimaryKeyModel, TimeStampedModel):
             self.finished_at = timezone.now()
             self.transition_to(self.StatusChoices.COMPLETED)
 
+    def try_revert(self):
+        if self.status != self.StatusChoices.COMPLETED:
+            return
+
+        required_question_ids = set(
+            self.survey.questions.filter(is_required=True).values_list("id", flat=True)
+        )
+        answered_question_ids = set(self.answers.values_list("question_id", flat=True))
+
+        # se alguma obrigatória não está mais respondida, reverte para draft
+        if not required_question_ids.issubset(answered_question_ids):
+            self.status = self.StatusChoices.DRAFT
+            self.finished_at = None  # limpa a data de conclusão
+            self.save(update_fields=["status", "finished_at"])
+
 
 class Answer(UUIDPrimaryKeyModel):
     submission = models.ForeignKey(
@@ -144,3 +159,8 @@ class Answer(UUIDPrimaryKeyModel):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.submission.try_complete()
+
+    def delete(self, *args, **kwargs):
+        submission = self.submission
+        super().delete(*args, **kwargs)
+        submission.try_revert()
