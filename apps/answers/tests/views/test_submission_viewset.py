@@ -4,9 +4,11 @@ from rest_framework import status
 
 from apps.answers.models import Submission
 from apps.answers.tests.factories import (
+    AnswerFactory,
     SubmissionFactory,
     SurveyAccessFactory,
 )
+from apps.surveys.tests.factories import QuestionFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -84,3 +86,54 @@ def test_submission_delete_draft_submission(respondent_api_client, submission):
     url = reverse("answers:submission-detail", kwargs={"pk": str(submission.id)})
     response = respondent_api_client.delete(url)
     assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_submission_submit_response_valid(
+    respondent_api_client, respondent_user, published_survey_access
+):
+    submission = SubmissionFactory(
+        user=respondent_user, survey=published_survey_access.survey
+    )
+    AnswerFactory.create_batch(3, submission=submission)
+    url = reverse("answers:submission-submit", kwargs={"pk": str(submission.id)})
+    response = respondent_api_client.post(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["status"] == Submission.StatusChoices.COMPLETED
+
+
+def test_submission_submit_response_invalid(
+    respondent_api_client, respondent_user, published_survey_access
+):
+    submission = SubmissionFactory(
+        user=respondent_user, survey=published_survey_access.survey
+    )
+    # cria uma questão obrigatória sem resposta associada
+    QuestionFactory(
+        survey=published_survey_access.survey, is_required=True, auto_order=True
+    )
+
+    # responde apenas questões não obrigatórias
+    AnswerFactory.create_batch(3, submission=submission)
+
+    url = reverse("answers:submission-submit", kwargs={"pk": str(submission.id)})
+    response = respondent_api_client.post(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["status"] == Submission.StatusChoices.DRAFT
+    assert response.data["finished_at"] is None
+
+
+#
+def test_submission_submit_already_completed(
+    respondent_api_client, respondent_user, published_survey_access
+):
+    submission = SubmissionFactory(
+        user=respondent_user,
+        survey=published_survey_access.survey,
+        status=Submission.StatusChoices.COMPLETED,
+    )
+    url = reverse("answers:submission-submit", kwargs={"pk": str(submission.id)})
+    response = respondent_api_client.post(url)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST

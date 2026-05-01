@@ -9,6 +9,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -54,6 +55,20 @@ from apps.surveys.models import Survey
             403: OpenApiResponse(description=_("Envio já concluído")),
         },
     ),
+    submit=extend_schema(
+        tags=["submissions"],
+        operation_id="submission_submit",
+        summary=_("Enviar preenchimento"),
+        description=_(
+            "Tenta concluir o preenchimento verificando se todas as "
+            "questões obrigatórias foram respondidas"
+        ),
+        request=None,
+        responses={
+            200: SubmissionDetailSerializer,
+            400: OpenApiResponse(description=_("Preenchimento já concluído")),
+        },
+    ),
 )
 class SubmissionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsRespondent, HasSurveyAccess]
@@ -84,6 +99,22 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             )
 
         return super().destroy(request, *args, **kwargs)
+
+    @action(detail=True, methods=["post"], url_name="submit", url_path="submit")
+    def submit(self, request, pk=None):
+        submission = self.get_object()
+
+        if submission.status == Submission.StatusChoices.COMPLETED:
+            return Response(
+                {"detail": _("Este preenchimento já foi concluído.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        submission.try_complete()
+        submission.refresh_from_db()
+
+        serializer = self.get_serializer(submission)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 params = [
