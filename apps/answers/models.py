@@ -155,12 +155,3 @@ class Answer(UUIDPrimaryKeyModel):
 
     def __str__(self) -> str:
         return f"{self.submission} → {self.question}"
-
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)
-    #     self.submission.try_complete()
-
-    # def delete(self, *args, **kwargs):
-    #     submission = self.submission
-    #     super().delete(*args, **kwargs)
-    #     submission.try_revert()

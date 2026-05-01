@@ -80,18 +80,3 @@ def test_answer_delete_draft_submission(respondent_api_client, submission, answe
     )
     response = respondent_api_client.delete(url)
     assert response.status_code == status.HTTP_204_NO_CONTENT
-
-
-def test_answer_delete_completed_submission(respondent_api_client, submission, answer):
-    submission.status = Submission.StatusChoices.COMPLETED
-    submission.save()
-
-    url = reverse(
-        "answers:answer-detail",
-        kwargs={"submission_pk": str(submission.id), "pk": str(answer.id)},
-    )
-    response = respondent_api_client.delete(url)
-    assert response.status_code == status.HTTP_204_NO_CONTENT
-
-    submission.refresh_from_db()
-    assert submission.status == submission.StatusChoices.DRAFT
