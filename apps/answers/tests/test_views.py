@@ -23,6 +23,26 @@ def test_submission_create(respondent_api_client, respondent_user):
     assert Submission.objects.count() == 1
 
 
+def test_submission_create_read_only_fields(respondent_api_client, respondent_user):
+    survey_access = SurveyAccessFactory(user=respondent_user)
+    url = reverse("answers:submission-list")
+    fake_date = "2000-01-01T00:00:00Z"
+    data = {
+        "survey": str(survey_access.survey.id),
+        "id": "90dc1281-cbd9-4168-ba46-5e56434056c3",
+        "started_at": fake_date,
+        "finished_at": fake_date,
+        "status": Submission.StatusChoices.COMPLETED,
+    }
+    response = respondent_api_client.post(url, data=data, format="json")
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["id"] != data["id"]
+    assert response.data["started_at"] != data["started_at"]
+    assert response.data["finished_at"] is None
+    assert response.data["status"] == Submission.StatusChoices.DRAFT
+
+
 def test_submission_list(respondent_api_client, respondent_user):
     SubmissionFactory.create_batch(5, user=respondent_user)
     url = reverse("answers:submission-list")

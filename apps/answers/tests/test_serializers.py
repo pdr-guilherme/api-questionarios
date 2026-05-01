@@ -63,6 +63,27 @@ def test_serializer_to_submission(respondent_user, respondent_context):
     assert submission.finished_at is None
 
 
+def test_submission_list_serializer_read_only_fields(
+    respondent_user, respondent_context
+):
+    fake_date = "2000-01-01T00:00:00Z"
+    survey_access = SurveyAccessFactory(user=respondent_user)
+    data = {
+        "survey": str(survey_access.survey.id),
+        "id": "90dc1281-cbd9-4168-ba46-5e56434056c3",
+        "started_at": fake_date,
+        "finished_at": fake_date,
+        "status": Submission.StatusChoices.COMPLETED,
+    }
+    serializer = SubmissionListSerializer(data=data, context=respondent_context)
+    assert serializer.is_valid(), serializer.errors
+
+    assert "id" not in serializer.validated_data  # type: ignore
+    assert "started_at" not in serializer.validated_data  # type: ignore
+    assert "finished_at" not in serializer.validated_data  # type: ignore
+    assert "status" not in serializer.validated_data  # type: ignore
+
+
 def test_answer_to_serializer(answer):
     serializer = AnswerSerializer(answer)
     assert isinstance(serializer.data, dict)

@@ -18,6 +18,12 @@ class SubmissionListSerializer(serializers.ModelSerializer):
             "finished_at",
             "user",
         ]
+        read_only_fields = [
+            "id",
+            "status",
+            "started_at",
+            "finished_at",
+        ]
 
 
 class AnswerSerializer(serializers.ModelSerializer):
