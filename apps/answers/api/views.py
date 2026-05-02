@@ -28,31 +28,34 @@ from apps.surveys.models import Survey
     list=extend_schema(
         tags=["submissions"],
         operation_id="submission_list",
-        summary=_("Listar envios"),
-        description=_("Retorna todos os envios do respondente autenticado"),
+        summary=_("Listar preenchimentos"),
+        description=_("Retorna todos os preenchimentos do respondente autenticado"),
     ),
     retrieve=extend_schema(
         tags=["submissions"],
         operation_id="submission_detail",
-        summary=_("Detalhar envio"),
-        description=_("Retorna os detalhes de um envio, incluindo as respostas"),
+        summary=_("Detalhar preenchimento"),
+        description=_(
+            "Retorna os detalhes de um preenchimento, incluindo as respostas"
+        ),
     ),
     create=extend_schema(
         tags=["submissions"],
         operation_id="submission_create",
-        summary=_("Iniciar envio"),
-        description=_("Inicia um novo envio para um questionário publicado"),
+        summary=_("Iniciar preenchimento"),
+        description=_("Inicia um novo preenchimento para um questionário publicado"),
     ),
     destroy=extend_schema(
         tags=["submissions"],
         operation_id="submission_delete",
-        summary=_("Apagar envio"),
+        summary=_("Apagar preenchimentos"),
         description=_(
-            "Apaga um envio em rascunho. Envios concluídos não podem ser apagados"
+            "Apaga um preenchimentos em rascunho."
+            " Preenchimentos concluídos não podem ser apagados"
         ),
         responses={
             204: None,
-            403: OpenApiResponse(description=_("Envio já concluído")),
+            403: OpenApiResponse(description=_("Preenchimento já concluído")),
         },
     ),
     submit=extend_schema(
@@ -97,7 +100,7 @@ class SubmissionViewSet(viewsets.ModelViewSet):
 
         if submission.status == Submission.StatusChoices.COMPLETED:
             return Response(
-                {"detail": _("Não é possível apagar um envio já concluído.")},
+                {"detail": _("Não é possível apagar um preenchimento já concluído.")},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -143,7 +146,7 @@ params = [
         name="submission_pk",
         type=OpenApiTypes.UUID,
         location=OpenApiParameter.PATH,
-        description=_("UUID do envio"),
+        description=_("UUID do preenchimento"),
     ),
     OpenApiParameter(
         name="id",
@@ -159,7 +162,7 @@ params = [
         tags=["answers"],
         operation_id="answer_list",
         summary=_("Listar respostas"),
-        description=_("Retorna todas as respostas de um envio"),
+        description=_("Retorna todas as respostas de um preenchimento"),
         parameters=[params[0]],
     ),
     retrieve=extend_schema(
@@ -173,18 +176,18 @@ params = [
         tags=["answers"],
         operation_id="answer_create",
         summary=_("Enviar resposta"),
-        description=_("Envia ou substitui a resposta de uma questão no envio"),
+        description=_("Envia ou substitui a resposta de uma questão no preenchimento"),
         parameters=params,
         responses={
             201: AnswerSerializer,
-            403: OpenApiResponse(description=_("Envio já concluído")),
+            403: OpenApiResponse(description=_("Preenchimento já concluído")),
         },
     ),
     destroy=extend_schema(
         tags=["answers"],
         operation_id="answer_delete",
         summary=_("Apagar resposta"),
-        description=_("Apaga a resposta de uma questão do envio"),
+        description=_("Apaga a resposta de uma questão do preenchimento"),
         parameters=params,
     ),
 )
@@ -211,7 +214,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
         if submission.status == Submission.StatusChoices.COMPLETED:
             raise PermissionDenied(
-                _("Não é possível modificar uma submission já concluída.")
+                _("Não é possível modificar um preenchimento já concluído.")
             )
 
         question = serializer.validated_data["question"]
