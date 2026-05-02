@@ -67,6 +67,9 @@ from apps.surveys.models import Survey
         responses={
             200: SubmissionDetailSerializer,
             400: OpenApiResponse(description=_("Preenchimento já concluído")),
+            422: OpenApiResponse(
+                description=_("Existem questões obrigatórias sem resposta")
+            ),
         },
     ),
 )
@@ -108,6 +111,24 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": _("Este preenchimento já foi concluído.")},
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        answered_question_ids = set(
+            submission.answers.values_list("question_id", flat=True)
+        )
+        unanswered_required = (
+            submission.survey.questions.filter(is_required=True)
+            .exclude(id__in=answered_question_ids)
+            .values("id", "text", "order")
+        )
+
+        if unanswered_required.exists():
+            return Response(
+                {
+                    "detail": _("Existem questões obrigatórias sem resposta."),
+                    "unanswered_questions": list(unanswered_required),
+                },
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
 
         submission.try_complete()
@@ -196,11 +217,6 @@ class AnswerViewSet(viewsets.ModelViewSet):
         question = serializer.validated_data["question"]
         option = serializer.validated_data["option"]
 
-        Answer.objects.update_or_create(
-            submission=submission,
-            question=question,
-            defaults={"option": option},
-        )
         Answer.objects.update_or_create(
             submission=submission,
             question=question,

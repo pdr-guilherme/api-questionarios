@@ -119,12 +119,10 @@ def test_submission_submit_response_invalid(
     url = reverse("answers:submission-submit", kwargs={"pk": str(submission.id)})
     response = respondent_api_client.post(url)
 
-    assert response.status_code == status.HTTP_200_OK
-    assert response.data["status"] == Submission.StatusChoices.DRAFT
-    assert response.data["finished_at"] is None
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert "unanswered_questions" in response.data
 
 
-#
 def test_submission_submit_already_completed(
     respondent_api_client, respondent_user, published_survey_access
 ):
