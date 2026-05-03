@@ -1,8 +1,10 @@
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from apps.answers.models import Submission
 from apps.core.pagination import CustomPagination
 from apps.core.permissions import HasSurveyAccess, IsRespondent
 from apps.surveys.api.serializers import (
@@ -45,9 +47,30 @@ class AssignedSurveyViewSet(viewsets.ReadOnlyModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return Survey.objects.none()
 
+        user = self.request.user
+
         qs = Survey.objects.filter(
-            respondents=self.request.user, status=Survey.StatusChoices.PUBLISHED
+            respondents=user,
+            status=Survey.StatusChoices.PUBLISHED,
         ).distinct()
+
+        if self.action == "list":
+            qs = qs.prefetch_related(
+                models.Prefetch(
+                    "submissions",
+                    queryset=Submission.objects.filter(user=user),
+                )
+            )
+
         if self.action == "retrieve":
-            qs = qs.prefetch_related("questions")
+            qs = qs.prefetch_related(
+                "questions",
+                "questions__options",
+                "questions__images",
+                models.Prefetch(
+                    "submissions",
+                    queryset=Submission.objects.filter(user=user),
+                ),
+            )
+
         return qs
