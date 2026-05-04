@@ -81,6 +81,9 @@ class AnswerViewSet(viewsets.ModelViewSet):
         )
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Answer.objects.none()
+
         submission = self.get_submission()
         return Answer.objects.filter(submission=submission)
 
