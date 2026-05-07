@@ -1,4 +1,3 @@
-from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
@@ -13,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from apps.answers.api.serializers import AnswerSerializer
 from apps.answers.models import Answer, Submission
+from apps.answers.permissions import SubmissionIsEditable
 from apps.core.permissions import HasSurveyAccess, IsRespondent
 from apps.surveys.models import Survey
 
@@ -67,7 +67,12 @@ params = [
     ),
 )
 class AnswerViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, IsRespondent, HasSurveyAccess]
+    permission_classes = [
+        IsAuthenticated,
+        IsRespondent,
+        HasSurveyAccess,
+        SubmissionIsEditable,
+    ]
     serializer_class = AnswerSerializer
     http_method_names = ["get", "post", "delete", "head", "options", "trace"]
 
@@ -89,11 +94,6 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         submission = self.get_submission()
-
-        if submission.status == Submission.StatusChoices.COMPLETED:
-            raise PermissionDenied(
-                _("Não é possível modificar um preenchimento já concluído.")
-            )
 
         question = serializer.validated_data["question"]
         option = serializer.validated_data["option"]

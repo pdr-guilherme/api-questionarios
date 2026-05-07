@@ -80,3 +80,34 @@ def test_answer_delete_draft_submission(respondent_api_client, submission, answe
     )
     response = respondent_api_client.delete(url)
     assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_answer_delete_completed_submission(respondent_api_client, submission, answer):
+    submission.status = submission.StatusChoices.COMPLETED
+    submission.save()
+
+    url = reverse(
+        "answers:answer-detail",
+        kwargs={"submission_pk": str(submission.id), "pk": str(answer.id)},
+    )
+    response = respondent_api_client.delete(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_answer_create_completed_submission(
+    respondent_api_client, respondent_user, published_survey_access
+):
+    answer_data = AnswerFactory(survey=published_survey_access.survey)
+    submission = SubmissionFactory(
+        user=respondent_user,
+        survey=published_survey_access.survey,
+        status=Submission.StatusChoices.COMPLETED,
+    )
+    data = {
+        "submission": str(submission.id),
+        "question": str(answer_data.question.id),
+        "option": str(answer_data.option.id),
+    }
+    url = reverse("answers:answer-list", kwargs={"submission_pk": str(submission.id)})
+    response = respondent_api_client.post(url, data=data, format="json")
+    assert response.status_code == status.HTTP_403_FORBIDDEN
