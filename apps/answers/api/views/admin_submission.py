@@ -18,11 +18,13 @@ from apps.core.permissions import IsAdmin
 
 @extend_schema_view(
     list=extend_schema(
+        tags=["admin_submissions"],
         operation_id="admin_submission_list",
         summary=_("Listar preenchimentos"),
         description=_("Retorna todos os preenchimentos de todos os respondentes"),
     ),
     retrieve=extend_schema(
+        tags=["admin_submissions"],
         operation_id="admin_submission_detail",
         summary=_("Detalhar preenchimento"),
         description=_(

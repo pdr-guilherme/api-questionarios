@@ -239,7 +239,13 @@ SPECTACULAR_SETTINGS = {
         },
         {
             "name": "answers",
-            "description": _("Operações com respostas específicas de um envio"),
+            "description": _("Operações com respostas específicas de um preenchimento"),
+        },
+        {
+            "name": "admin_submissions",
+            "description": _(
+                "Operações de leitura de preenchimentos para adminstradores"
+            ),
         },
     ],
 }
