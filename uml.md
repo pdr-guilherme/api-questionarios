@@ -1,5 +1,6 @@
 ```mermaid
 erDiagram
+    USER ||--o{ USER : "CADASTRA"
     USER ||--o{ SURVEY : "cria"
     USER ||--o{ SURVEY_ACCESS : "tem acesso a"
     SURVEY ||--o{ SURVEY_ACCESS : "liberado para"
@@ -19,6 +20,7 @@ erDiagram
         boolean is_active
         datetime created_at
         datetime updated_at
+        uuid created_by FK
     }
 
     SURVEY {
