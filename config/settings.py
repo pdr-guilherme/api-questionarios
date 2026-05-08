@@ -49,9 +49,16 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     # image cleanup
     "django_cleanup.apps.CleanupSelectedConfig",
+    # filtering
+    "django_filters",
 ]
 
-LOCAL_APPS = ["users", "core", "surveys"]
+LOCAL_APPS = [
+    "apps.users",
+    "apps.core",
+    "apps.surveys",
+    "apps.answers",
+]
 
 INSTALLED_APPS = (
     [
@@ -151,7 +158,7 @@ AUTH_USER_MODEL = "users.User"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "users.backends.EmailBackend",
+    "apps.users.backends.EmailBackend",
 ]
 
 REST_FRAMEWORK = {
@@ -159,6 +166,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "DEFAULT_AUTHENTICATION_CLASSES": ["dj_rest_auth.jwt_auth.JWTCookieAuthentication"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
 ACCOUNT_LOGIN_METHODS = ["email"]
@@ -166,9 +174,9 @@ ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
 REST_AUTH = {
-    "LOGIN_SERIALIZER": "users.api.serializers.CustomLoginSerializer",
-    "USER_DETAILS_SERIALIZER": "users.api.serializers.CustomUserDetailsSerializer",
-    "REGISTER_SERIALIZER": "users.api.serializers.CustomRegisterSerializer",
+    "LOGIN_SERIALIZER": "apps.users.api.serializers.CustomLoginSerializer",
+    "USER_DETAILS_SERIALIZER": "apps.users.api.serializers.CustomUserDetailsSerializer",
+    "REGISTER_SERIALIZER": "apps.users.api.serializers.CustomRegisterSerializer",
     "USE_JWT": True,
     "JWT_AUTH_COOKIE": "access",
     "JWT_AUTH_REFRESH_COOKIE": "refresh",
@@ -198,6 +206,11 @@ SPECTACULAR_SETTINGS = {
     "SORT_OPERATIONS": True,
     "COMPONENT_SPLIT_REQUEST": True,
     "SERVE_PUBLIC": True,
+    "ENUM_NAME_OVERRIDES": {
+        "SurveyStatusEnum": "apps.surveys.models.Survey.StatusChoices",
+        "SubmissionStatusEnum": "apps.answers.models.Submission.StatusChoices",
+    },
+    "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
     "TAGS": [
         {
             "name": "auth",
@@ -215,6 +228,24 @@ SPECTACULAR_SETTINGS = {
         {
             "name": "options",
             "description": _("Operações com opções de resposta para perguntas"),
+        },
+        {
+            "name": "assigned_surveys",
+            "description": _("Operações com questionários atribuídos a um respondente"),
+        },
+        {
+            "name": "submissions",
+            "description": _("Operações com envios de respostas a questionários"),
+        },
+        {
+            "name": "answers",
+            "description": _("Operações com respostas específicas de um preenchimento"),
+        },
+        {
+            "name": "admin_submissions",
+            "description": _(
+                "Operações de leitura de preenchimentos para adminstradores"
+            ),
         },
     ],
 }

@@ -42,7 +42,6 @@ erDiagram
         uuid id PK
         uuid survey_id FK
         string text
-        <!-- string type -->
         int order
         boolean is_required
         datetime created_at
@@ -71,6 +70,7 @@ erDiagram
         string status
         datetime started_at
         datetime finished_at
+        datetime created_at
         datetime updated_at
     }
 

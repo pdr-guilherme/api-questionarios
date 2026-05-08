@@ -1,0 +1,72 @@
+import factory
+
+from apps.surveys.models import Option, Question, QuestionImage, Survey
+from apps.surveys.tests.helpers import make_image
+from apps.users.tests.factories import UserFactory
+
+
+class SurveyFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Survey
+
+    author = factory.SubFactory(UserFactory)
+    title = factory.Sequence(lambda n: f"Survey {n}")
+    status = Survey.StatusChoices.DRAFT
+
+
+class QuestionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Question
+
+    survey = factory.SubFactory(SurveyFactory)
+    text = factory.Faker("sentence")
+    order = factory.Sequence(int)
+
+    class Params:
+        auto_order = factory.Trait(order=None)
+
+    @classmethod
+    def _setup_next_sequence(cls):
+        try:
+            return Question.objects.latest("order").order + 1
+        except Question.DoesNotExist:
+            return 1
+
+
+class QuestionImageFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = QuestionImage
+
+    question = factory.SubFactory(QuestionFactory)
+    file = factory.LazyFunction(make_image)
+    order = factory.Sequence(int)
+    alt_text = factory.Faker("sentence")
+
+    class Params:
+        auto_order = factory.Trait(order=None)
+
+    @classmethod
+    def _setup_next_sequence(cls):
+        try:
+            return QuestionImage.objects.latest("order").order + 1
+        except QuestionImage.DoesNotExist:
+            return 1
+
+
+class OptionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Option
+
+    question = factory.SubFactory(QuestionFactory)
+    text = factory.Faker("sentence")
+    order = factory.Sequence(int)
+
+    class Params:
+        auto_order = factory.Trait(order=None)
+
+    @classmethod
+    def _setup_next_sequence(cls):
+        try:
+            return Option.objects.latest("order").order + 1
+        except Option.DoesNotExist:
+            return 1
