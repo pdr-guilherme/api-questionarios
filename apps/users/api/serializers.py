@@ -96,3 +96,20 @@ class RespondentCreateSerializer(serializers.ModelSerializer):
         )
 
         return user
+
+
+class RespondentListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "email"]
+
+
+class RespondentDetailSerializer(RespondentListSerializer):
+    class Meta(RespondentListSerializer.Meta):
+        fields = [
+            *RespondentListSerializer.Meta.fields,
+            "created_at",
+            "updated_at",
+            "is_active",
+            "last_login",
+        ]

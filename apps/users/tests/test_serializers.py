@@ -4,6 +4,8 @@ from django.core import mail
 from apps.users.api.serializers import (
     CustomRegisterSerializer,
     RespondentCreateSerializer,
+    RespondentDetailSerializer,
+    RespondentListSerializer,
 )
 from apps.users.models import User
 from apps.users.utils import create_password
@@ -135,3 +137,28 @@ def test_get_cleaned_data_adds_admin_fields():
     assert data["role"] == User.RoleChoices.ADMIN
     assert data["is_staff"] is True
     assert data["is_superuser"] is True
+
+
+def test_respondent_list_serializer(respondent_user):
+    serializer = RespondentListSerializer(respondent_user)
+    assert isinstance(serializer.data, dict)
+
+    fields = ["id", "email"]
+    for field in fields:
+        assert field in serializer.data
+
+
+def test_respondent_detail_serializer(respondent_user):
+    serializer = RespondentDetailSerializer(respondent_user)
+    assert isinstance(serializer.data, dict)
+
+    fields = [
+        "id",
+        "email",
+        "created_at",
+        "updated_at",
+        "is_active",
+        "last_login",
+    ]
+    for field in fields:
+        assert field in serializer.data
