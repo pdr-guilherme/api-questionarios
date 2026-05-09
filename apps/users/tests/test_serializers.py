@@ -8,26 +8,34 @@ from apps.users.api.serializers import (
 from apps.users.models import User
 from apps.users.utils import create_password
 
+pytestmark = pytest.mark.django_db
+
 data = {"email": "test@email.com"}
 password = create_password()
 
 
-@pytest.mark.django_db
-def test_respondent_create_serializer_valid():
-    serializer = RespondentCreateSerializer(data=data)
+@pytest.fixture
+def non_admin_context(request_factory, respondent_user):
+    request = request_factory.post("/")
+    request.user = respondent_user
+    return {"request": request}
+
+
+def test_respondent_create_serializer_valid(context):
+    serializer = RespondentCreateSerializer(data=data, context=context)
     assert serializer.is_valid()
 
 
-def test_respondent_create_serializer_invalid(db):
+def test_respondent_create_serializer_invalid(context):
     data = {"email": ""}
-    serializer = RespondentCreateSerializer(data=data)
+    serializer = RespondentCreateSerializer(data=data, context=context)
 
     assert not serializer.is_valid()
     assert "email" in serializer.errors
 
 
-def test_respondent_create_serializer_creates_user(db):
-    serializer = RespondentCreateSerializer(data=data)
+def test_respondent_create_serializer_creates_user(context):
+    serializer = RespondentCreateSerializer(data=data, context=context)
     assert serializer.is_valid()
 
     user = serializer.save()
@@ -37,23 +45,38 @@ def test_respondent_create_serializer_creates_user(db):
     assert user.role == User.RoleChoices.RESPONDENT
 
 
-def test_respondent_create_serializer_user_created_with_password(db):
-    serializer = RespondentCreateSerializer(data=data)
-    serializer.is_valid()
+def test_respondent_create_serializer_user_created_with_password(context):
+    serializer = RespondentCreateSerializer(data=data, context=context)
+    assert serializer.is_valid()
     user = serializer.save()
 
-    assert user.has_usable_password()  # type:ignore
+    assert user.has_usable_password()  # type: ignore
 
 
-def test_respondent_create_serializer_email_sent_on_create(db):
-    serializer = RespondentCreateSerializer(data=data)
-    serializer.is_valid()
+def test_respondent_create_serializer_email_sent_on_create(context):
+    serializer = RespondentCreateSerializer(data=data, context=context)
+    assert serializer.is_valid()
     serializer.save()
 
     assert len(mail.outbox) == 1
 
 
-@pytest.mark.django_db
+def test_respondent_create_serializer_sets_created_by(context):
+    serializer = RespondentCreateSerializer(data=data, context=context)
+    assert serializer.is_valid()
+
+    user = serializer.save()
+    assert isinstance(user, User)
+    assert user.created_by is not None
+    assert user.created_by == context["request"].user
+
+
+def test_respondent_create_serializer_validate_created_by(non_admin_context):
+    serializer = RespondentCreateSerializer(data=data, context=non_admin_context)
+    assert not serializer.is_valid()
+    assert "created_by" in serializer.errors
+
+
 def test_register_serializer_valid():
     data = {
         "email": "admin@email.com",
@@ -65,7 +88,6 @@ def test_register_serializer_valid():
     assert serializer.is_valid()
 
 
-@pytest.mark.django_db
 def test_register_serializer_password_mismatch():
     password2 = create_password()
     data = {
@@ -78,7 +100,6 @@ def test_register_serializer_password_mismatch():
     assert not serializer.is_valid()
 
 
-@pytest.mark.django_db
 def test_register_serializer_creates_admin_user():
     data = {
         "email": "admin@email.com",
@@ -99,7 +120,6 @@ def test_register_serializer_creates_admin_user():
     assert user.is_superuser is True
 
 
-@pytest.mark.django_db
 def test_get_cleaned_data_adds_admin_fields():
     serializer = CustomRegisterSerializer(
         data={
@@ -110,7 +130,7 @@ def test_get_cleaned_data_adds_admin_fields():
     )
     assert serializer.is_valid()
 
-    data = serializer.get_cleaned_data()  # type:ignore
+    data = serializer.get_cleaned_data()  # type: ignore
 
     assert data["role"] == User.RoleChoices.ADMIN
     assert data["is_staff"] is True
