@@ -8,9 +8,9 @@ from apps.surveys.tests.helpers import make_image
 pytestmark = pytest.mark.django_db
 
 
-def test_question_image_to_serializer(context):
+def test_question_image_to_serializer(admin_context):
     question_image = QuestionImageFactory()
-    serializer = QuestionImageSerializer(instance=question_image, context=context)
+    serializer = QuestionImageSerializer(instance=question_image, context=admin_context)
 
     assert isinstance(serializer.data, dict)
     assert serializer.data["id"] == str(question_image.id)

@@ -14,13 +14,6 @@ from apps.surveys.tests.factories import (
 
 
 @pytest.fixture
-def context(request_factory, admin_user):
-    request = request_factory.post("/")
-    request.user = admin_user
-    return {"request": request}
-
-
-@pytest.fixture
 def survey(admin_user):
     return cast(Survey, SurveyFactory(author=admin_user))
 

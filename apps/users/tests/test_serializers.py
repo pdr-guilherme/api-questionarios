@@ -21,21 +21,21 @@ def non_admin_context(request_factory, respondent_user):
     return {"request": request}
 
 
-def test_respondent_create_serializer_valid(context):
-    serializer = RespondentCreateSerializer(data=data, context=context)
+def test_respondent_create_serializer_valid(admin_context):
+    serializer = RespondentCreateSerializer(data=data, context=admin_context)
     assert serializer.is_valid()
 
 
-def test_respondent_create_serializer_invalid(context):
+def test_respondent_create_serializer_invalid(admin_context):
     data = {"email": ""}
-    serializer = RespondentCreateSerializer(data=data, context=context)
+    serializer = RespondentCreateSerializer(data=data, context=admin_context)
 
     assert not serializer.is_valid()
     assert "email" in serializer.errors
 
 
-def test_respondent_create_serializer_creates_user(context):
-    serializer = RespondentCreateSerializer(data=data, context=context)
+def test_respondent_create_serializer_creates_user(admin_context):
+    serializer = RespondentCreateSerializer(data=data, context=admin_context)
     assert serializer.is_valid()
 
     user = serializer.save()
@@ -45,30 +45,30 @@ def test_respondent_create_serializer_creates_user(context):
     assert user.role == User.RoleChoices.RESPONDENT
 
 
-def test_respondent_create_serializer_user_created_with_password(context):
-    serializer = RespondentCreateSerializer(data=data, context=context)
+def test_respondent_create_serializer_user_created_with_password(admin_context):
+    serializer = RespondentCreateSerializer(data=data, context=admin_context)
     assert serializer.is_valid()
     user = serializer.save()
 
     assert user.has_usable_password()  # type: ignore
 
 
-def test_respondent_create_serializer_email_sent_on_create(context):
-    serializer = RespondentCreateSerializer(data=data, context=context)
+def test_respondent_create_serializer_email_sent_on_create(admin_context):
+    serializer = RespondentCreateSerializer(data=data, context=admin_context)
     assert serializer.is_valid()
     serializer.save()
 
     assert len(mail.outbox) == 1
 
 
-def test_respondent_create_serializer_sets_created_by(context):
-    serializer = RespondentCreateSerializer(data=data, context=context)
+def test_respondent_create_serializer_sets_created_by(admin_context):
+    serializer = RespondentCreateSerializer(data=data, context=admin_context)
     assert serializer.is_valid()
 
     user = serializer.save()
     assert isinstance(user, User)
     assert user.created_by is not None
-    assert user.created_by == context["request"].user
+    assert user.created_by == admin_context["request"].user
 
 
 def test_respondent_create_serializer_validate_created_by(non_admin_context):
