@@ -53,18 +53,30 @@ class CustomRegisterSerializer(RegisterSerializer):
 
 
 class RespondentCreateSerializer(serializers.ModelSerializer):
+    created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     class Meta:
         model = User
-        fields = ["id", "email"]
-        read_only_fields = ["id"]
+        fields = ["id", "email", "created_by"]
+        read_only_fields = ["id", "created_by"]
+
+    def validate_created_by(self, value):
+        if not value.is_staff:
+            raise serializers.ValidationError(
+                _("Somente administradores podem cadastrar respondentes.")
+            )
+
+        return value
 
     def create(self, validated_data):
         email = validated_data["email"]
+        created_by = validated_data["created_by"]
 
         password = create_password()
 
         user = User(
             email=email,
+            created_by=created_by,
             role=User.RoleChoices.RESPONDENT,
             is_active=True,
         )
