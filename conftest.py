@@ -34,9 +34,9 @@ def admin_user():
 
 
 @pytest.fixture
-def respondent_user():
+def respondent_user(admin_user):
     """Creates an respondent user (role=`User.RoleChoices.RESPONDENT`)"""
-    return cast(User, UserFactory())
+    return cast(User, UserFactory(created_by=admin_user))
 
 
 @pytest.fixture
