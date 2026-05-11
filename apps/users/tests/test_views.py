@@ -23,6 +23,16 @@ def other_respondents():
     return [cast(User, UserFactory(created_by=other_admin)) for _ in range(3)]
 
 
+@pytest.fixture
+def active_user(admin_user):
+    return cast(User, UserFactory(created_by=admin_user, is_active=True))
+
+
+@pytest.fixture
+def inactive_user(admin_user):
+    return cast(User, UserFactory(created_by=admin_user, is_active=False))
+
+
 def test_create_respondent(admin_api_client):
     url = reverse("users:respondent-list")
     response = admin_api_client.post(url, data=data, format="json")
@@ -147,3 +157,39 @@ def test_respondent_partial_update(admin_api_client, respondent_user):
     assert response.status_code == status.HTTP_200_OK
     respondent_user.refresh_from_db()
     assert respondent_user.email == data["email"]
+
+
+def test_respondent_activate_inactive_user(admin_api_client, inactive_user):
+    url = reverse("users:respondent-activate", kwargs={"pk": str(inactive_user.id)})
+    response = admin_api_client.post(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    inactive_user.refresh_from_db()
+    assert inactive_user.is_active
+
+
+def test_respondent_activate_active_user(admin_api_client, active_user):
+    url = reverse("users:respondent-activate", kwargs={"pk": str(active_user.id)})
+    response = admin_api_client.post(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    active_user.refresh_from_db()
+    assert active_user.is_active
+
+
+def test_respondent_deactivate_active_user(admin_api_client, active_user):
+    url = reverse("users:respondent-deactivate", kwargs={"pk": str(active_user.id)})
+    response = admin_api_client.post(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    active_user.refresh_from_db()
+    assert not active_user.is_active
+
+
+def test_respondent_deactivate_inactive_user(admin_api_client, inactive_user):
+    url = reverse("users:respondent-deactivate", kwargs={"pk": str(inactive_user.id)})
+    response = admin_api_client.post(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    inactive_user.refresh_from_db()
+    assert not inactive_user.is_active

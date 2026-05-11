@@ -1,7 +1,9 @@
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.core.pagination import CustomPagination
 from apps.core.permissions import IsAdmin
@@ -66,6 +68,26 @@ from apps.users.models import User
         summary=_("Apagar respondente"),
         description=_("Apaga um respondente do banco de dados"),
     ),
+    activate=extend_schema(
+        operation_id="respondent_activate",
+        summary=_("Ativar respondente"),
+        description=_("Ativa a conta de um respondente específico"),
+        request=None,
+        responses={
+            204: None,
+            404: OpenApiResponse(description=_("Respondente não encontrado")),
+        },
+    ),
+    deactivate=extend_schema(
+        operation_id="respondent_deactivate",
+        summary=_("Desativar respondente"),
+        description=_("Desativa a conta de um respondente específico"),
+        request=None,
+        responses={
+            204: None,
+            404: OpenApiResponse(description=_("Respondente não encontrado")),
+        },
+    ),
 )
 class RespondentViewSet(viewsets.ModelViewSet):
     model = User
@@ -86,3 +108,29 @@ class RespondentViewSet(viewsets.ModelViewSet):
             return User.objects.none()
 
         return User.objects.filter(created_by=self.request.user)
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_name="activate",
+        url_path="activate",
+        serializer_class=None,
+    )
+    def activate(self, request, pk=None):
+        user = self.get_object()
+        user.is_active = True
+        user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_name="deactivate",
+        url_path="deactivate",
+        serializer_class=None,
+    )
+    def deactivate(self, request, pk=None):
+        user = self.get_object()
+        user.is_active = False
+        user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
