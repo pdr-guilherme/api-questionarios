@@ -8,6 +8,7 @@ from apps.answers.tests.factories import (
     SubmissionFactory,
     SurveyAccessFactory,
 )
+from apps.surveys.models import Survey
 from apps.surveys.tests.factories import QuestionFactory
 
 pytestmark = pytest.mark.django_db
@@ -40,6 +41,24 @@ def test_submission_create_read_only_fields(respondent_api_client, respondent_us
     assert response.data["started_at"] != data["started_at"]
     assert response.data["finished_at"] is None
     assert response.data["status"] == Submission.StatusChoices.DRAFT
+
+
+def test_submission_create_without_survey_access(respondent_api_client):
+    other_survey_access = SurveyAccessFactory()
+    data = {"survey": str(other_survey_access.survey.id)}
+    url = reverse("answers:submission-list")
+    response = respondent_api_client.post(url, data=data, format="json")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "survey" in response.data
+
+
+def test_submission_create_unpublished_survey(respondent_api_client):
+    draft_survey = SurveyAccessFactory(survey__status=Survey.StatusChoices.DRAFT)
+    data = {"survey": str(draft_survey.survey.id)}
+    url = reverse("answers:submission-list")
+    response = respondent_api_client.post(url, data=data, format="json")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "survey" in response.data
 
 
 def test_submission_list(respondent_api_client, respondent_user):
