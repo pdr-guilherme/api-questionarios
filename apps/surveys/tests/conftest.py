@@ -19,6 +19,13 @@ def survey(admin_user):
 
 
 @pytest.fixture
+def published_survey(admin_user):
+    return cast(
+        Survey, SurveyFactory(author=admin_user, status=Survey.StatusChoices.PUBLISHED)
+    )
+
+
+@pytest.fixture
 def granted_accesses(respondent_user):
     return cast(
         list[SurveyAccess],
@@ -62,3 +69,8 @@ def question_image(question):
     return cast(
         QuestionImage, QuestionImageFactory.create(auto_order=True, question=question)
     )
+
+
+@pytest.fixture
+def published_question(published_survey):
+    return cast(Question, QuestionFactory(survey=published_survey))
