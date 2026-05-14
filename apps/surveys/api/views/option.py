@@ -4,12 +4,13 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from apps.core.mixins import SurveyEditableMixin
 from apps.core.pagination import CustomPagination
 from apps.core.permissions import IsAdmin
 from apps.surveys.api.serializers import (
     OptionSerializer,
 )
-from apps.surveys.models import Option, Question
+from apps.surveys.models import Option, Question, Survey
 
 
 @extend_schema_view(
@@ -50,7 +51,7 @@ from apps.surveys.models import Option, Question
         description=_("Apaga uma opção do banco de dados"),
     ),
 )
-class OptionViewSet(viewsets.ModelViewSet):
+class OptionViewSet(SurveyEditableMixin, viewsets.ModelViewSet):
     serializer_class = OptionSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     pagination_class = CustomPagination
@@ -62,6 +63,17 @@ class OptionViewSet(viewsets.ModelViewSet):
             survey__author=self.request.user,
         )
 
+    def get_parent_survey(self) -> Survey:
+        if self.action == "create":
+            # question vem da url aninhada
+            question = get_object_or_404(
+                Question,
+                pk=self.kwargs["question_pk"],
+                survey__author=self.request.user,
+            )
+            return question.survey
+        return self.get_question().survey
+
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Option.objects.none()
@@ -72,4 +84,5 @@ class OptionViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
+        self._check_survey_is_draft()
         serializer.save(question=self.get_question())

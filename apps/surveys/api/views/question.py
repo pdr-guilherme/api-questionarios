@@ -1,15 +1,17 @@
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from apps.core.mixins import SurveyEditableMixin
 from apps.core.pagination import CustomPagination
 from apps.core.permissions import IsAdmin
 from apps.surveys.api.serializers import (
     QuestionDetailSerializer,
     QuestionSerializer,
 )
-from apps.surveys.models import Question
+from apps.surveys.models import Question, Survey
 
 
 @extend_schema_view(
@@ -46,9 +48,17 @@ from apps.surveys.models import Question
         description=_("Apaga uma questão do banco de dados"),
     ),
 )
-class QuestionViewSet(viewsets.ModelViewSet):
+class QuestionViewSet(SurveyEditableMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsAdmin]
     pagination_class = CustomPagination
+
+    def get_parent_survey(self) -> Survey:
+        # vem do payload
+        if self.action == "create":
+            survey_id = self.request.data.get("survey")
+            return get_object_or_404(Survey, pk=survey_id)
+        # vem da instância
+        return self.get_object().survey
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
