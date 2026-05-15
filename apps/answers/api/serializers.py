@@ -1,6 +1,8 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from apps.answers.models import Answer, Submission
+from apps.answers.models import Answer, Submission, SurveyAccess
+from apps.surveys.models import Survey
 
 
 class SubmissionListSerializer(serializers.ModelSerializer):
@@ -24,6 +26,23 @@ class SubmissionListSerializer(serializers.ModelSerializer):
             "started_at",
             "finished_at",
         ]
+
+    def validate_survey(self, survey):
+        user = self.context["request"].user
+
+        if survey.status != Survey.StatusChoices.PUBLISHED:
+            msg = (
+                "Não é possível iniciar um preenchimento "
+                "de um questionário não publicado."
+            )
+            raise serializers.ValidationError(_(msg))
+
+        if not SurveyAccess.objects.filter(survey=survey, user=user).exists():
+            raise serializers.ValidationError(
+                _("Você não tem acesso a esse questionário.")
+            )
+
+        return survey
 
 
 class AnswerSerializer(serializers.ModelSerializer):

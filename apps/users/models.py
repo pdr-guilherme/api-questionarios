@@ -45,7 +45,15 @@ class User(AbstractUser, UUIDPrimaryKeyModel, TimeStampedModel):
     role = models.CharField(
         _("role"), max_length=10, choices=RoleChoices, default=RoleChoices.RESPONDENT
     )
-    objects = CustomUserManager()  # type:ignore
+    created_by = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_users",
+        verbose_name=_("created by"),
+    )
+    objects = CustomUserManager()  # type: ignore
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

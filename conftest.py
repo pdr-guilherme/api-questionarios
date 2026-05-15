@@ -34,9 +34,9 @@ def admin_user():
 
 
 @pytest.fixture
-def respondent_user():
+def respondent_user(admin_user):
     """Creates an respondent user (role=`User.RoleChoices.RESPONDENT`)"""
-    return cast(User, UserFactory())
+    return cast(User, UserFactory(created_by=admin_user))
 
 
 @pytest.fixture
@@ -64,3 +64,11 @@ def respondent_api_client(respondent_user):
     client = APIClient()
     client.force_authenticate(respondent_user)
     return client
+
+
+@pytest.fixture
+def admin_context(request_factory, admin_user):
+    """Sets the user for a random request as `admin_user`"""
+    request = request_factory.post("/")
+    request.user = admin_user
+    return {"request": request}

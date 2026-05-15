@@ -14,15 +14,15 @@ from apps.surveys.tests.factories import (
 
 
 @pytest.fixture
-def context(request_factory, admin_user):
-    request = request_factory.post("/")
-    request.user = admin_user
-    return {"request": request}
+def survey(admin_user):
+    return cast(Survey, SurveyFactory(author=admin_user))
 
 
 @pytest.fixture
-def survey(admin_user):
-    return cast(Survey, SurveyFactory(author=admin_user))
+def published_survey(admin_user):
+    return cast(
+        Survey, SurveyFactory(author=admin_user, status=Survey.StatusChoices.PUBLISHED)
+    )
 
 
 @pytest.fixture
@@ -69,3 +69,8 @@ def question_image(question):
     return cast(
         QuestionImage, QuestionImageFactory.create(auto_order=True, question=question)
     )
+
+
+@pytest.fixture
+def published_question(published_survey):
+    return cast(Question, QuestionFactory(survey=published_survey))

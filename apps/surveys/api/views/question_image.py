@@ -5,12 +5,13 @@ from rest_framework import viewsets
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 
+from apps.core.mixins import SurveyEditableMixin
 from apps.core.pagination import CustomPagination
 from apps.core.permissions import IsAdmin
 from apps.surveys.api.serializers import (
     QuestionImageSerializer,
 )
-from apps.surveys.models import Question, QuestionImage
+from apps.surveys.models import Question, QuestionImage, Survey
 
 
 @extend_schema_view(
@@ -51,7 +52,7 @@ from apps.surveys.models import Question, QuestionImage
         description=_("Apaga uma imagem do banco de dados"),
     ),
 )
-class QuestionImageViewSet(viewsets.ModelViewSet):
+class QuestionImageViewSet(SurveyEditableMixin, viewsets.ModelViewSet):
     serializer_class = QuestionImageSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     pagination_class = CustomPagination
@@ -64,6 +65,13 @@ class QuestionImageViewSet(viewsets.ModelViewSet):
             survey__author=self.request.user,
         )
 
+    def get_parent_survey(self) -> Survey:
+        if self.action == "create":
+            # question vem da url aninhada
+            question = get_object_or_404(Question, pk=self.kwargs["question_pk"])
+            return question.survey
+        return self.get_question().survey
+
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return QuestionImage.objects.none()
@@ -74,4 +82,5 @@ class QuestionImageViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
+        self._check_survey_is_draft()
         serializer.save(question=self.get_question())
