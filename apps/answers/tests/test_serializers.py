@@ -1,18 +1,53 @@
+from typing import cast
+
 import pytest
 
 from apps.answers.api.serializers import (
     AnswerSerializer,
+    QuestionProgressSerializer,
+    RespondentProgressDetailSerializer,
+    RespondentProgressListSerializer,
     SubmissionDetailSerializer,
     SubmissionListSerializer,
+    SurveyProgressDetailSerializer,
+    SurveyProgressListSerializer,
 )
-from apps.answers.models import Answer, Submission
+from apps.answers.models import Answer, Submission, SurveyAccess
 from apps.answers.tests.factories import (
+    AnswerFactory,
     SubmissionFactory,
     SurveyAccessFactory,
 )
 from apps.surveys.tests.factories import OptionFactory, QuestionFactory
+from apps.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def accesses(admin_user, admin_survey):
+    return [
+        cast(
+            SurveyAccess,
+            SurveyAccessFactory(
+                user=UserFactory(created_by=admin_user),
+                survey=admin_survey,
+            ),
+        )
+        for i in range(3)
+    ]
+
+
+@pytest.fixture
+def submissions(accesses):
+    submissions = []
+    for survey_access in accesses:
+        submission = cast(
+            Submission,
+            SubmissionFactory(user=survey_access.user, survey=survey_access.survey),
+        )
+        submissions.append(submission)
+    return submissions
 
 
 def test_submission_to_list_serializer(submission):
@@ -117,3 +152,131 @@ def test_serializer_to_answer():
     answer = serializer.save(submission=sub)
     assert isinstance(answer, Answer)
     assert answer.answered_at is not None
+
+
+def test_survey_to_survey_progress_list_serializer(admin_survey, submissions):
+    serializer = SurveyProgressListSerializer(admin_survey)
+    assert isinstance(serializer.data, dict)
+
+    fields = [
+        "id",
+        "title",
+        "status",
+        "total_respondents",
+        "not_started",
+        "in_progress",
+        "completed",
+        "completion_rate",
+    ]
+    for field in fields:
+        assert field in serializer.data
+
+    assert serializer.data["total_respondents"] == 3
+    assert serializer.data["not_started"] == 0
+    assert serializer.data["in_progress"] == 3
+    assert serializer.data["completed"] == 0
+    assert serializer.data["completion_rate"] == 0
+
+
+def test_survey_progress_detail_serializer(admin_survey, submissions):
+    serializer = SurveyProgressDetailSerializer(admin_survey)
+    assert isinstance(serializer.data, dict)
+
+    fields = [
+        "id",
+        "title",
+        "status",
+        "total_respondents",
+        "not_started",
+        "in_progress",
+        "completed",
+        "completion_rate",
+        "created_at",
+        "updated_at",
+    ]
+
+    for field in fields:
+        assert field in serializer.data
+
+
+def test_question_progress_serializer(answer):
+    question = answer.question
+    serializer = QuestionProgressSerializer(question, context={"answers": [answer]})
+    assert isinstance(serializer.data, dict)
+
+    fields = ["id", "text", "order", "is_required", "answered", "answer"]
+    for field in fields:
+        assert field in serializer.data
+
+    assert serializer.data["answered"]
+    assert isinstance(serializer.data["answer"], dict)
+
+
+def test_question_progress_serializer_no_answer(answer):
+    serializer = QuestionProgressSerializer(answer.question)
+    assert isinstance(serializer.data, dict)
+
+    assert serializer.data["answer"] is None
+
+
+def test_respondent_progress_list_serializer(admin_survey_access, admin_submission):
+    serializer = RespondentProgressListSerializer(admin_survey_access)
+    assert isinstance(serializer.data, dict)
+
+    fields = [
+        "user_id",
+        "email",
+        "status",
+        "progress_percentage",
+        "unanswered_required_count",
+        "started_at",
+        "finished_at",
+    ]
+    for field in fields:
+        assert field in serializer.data
+
+    user = admin_survey_access.user
+    assert serializer.data["user_id"] == str(user.id)
+    assert serializer.data["email"] == user.email
+    assert serializer.data["status"] == admin_submission.status
+    # survey da fixture não tem perguntas atreladas a ela > resulta nisso
+    assert serializer.data["progress_percentage"] == 100
+    assert serializer.data["unanswered_required_count"] == 0
+    assert serializer.data["started_at"] == admin_submission.started_at
+    assert serializer.data["finished_at"] == admin_submission.finished_at
+
+
+def test_respondent_progress_list_serializer_no_submission(admin_survey_access):
+    serializer = RespondentProgressListSerializer(admin_survey_access)
+    assert isinstance(serializer.data, dict)
+
+    required_count = admin_survey_access.survey.questions.count()
+    assert serializer.data["progress_percentage"] == 0.0
+    assert serializer.data["status"] == "not_started"
+    assert serializer.data["unanswered_required_count"] == required_count
+
+
+def test_respondent_progress_detail_serializer(admin_survey_access, admin_submission):
+    questions = QuestionFactory.create_batch(3, survey=admin_survey_access.survey)
+    for question in questions:
+        AnswerFactory(
+            question=question, submission=admin_submission, survey=admin_survey_access
+        )
+
+    serializer = RespondentProgressDetailSerializer(admin_survey_access)
+    assert isinstance(serializer.data, dict)
+
+    fields = [
+        "user_id",
+        "email",
+        "status",
+        "progress_percentage",
+        "unanswered_required_count",
+        "started_at",
+        "finished_at",
+        "questions",
+    ]
+    for field in fields:
+        assert field in serializer.data
+
+    assert isinstance(serializer.data["questions"], list)
