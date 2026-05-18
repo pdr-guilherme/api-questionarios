@@ -1,3 +1,7 @@
+from datetime import datetime
+from typing import TypedDict
+from uuid import UUID
+
 from rest_framework import serializers
 
 from apps.answers.models import Submission, SurveyAccess
@@ -113,13 +117,19 @@ class RespondentProgressListSerializer(serializers.ModelSerializer):
         answered = submission.answers.filter(question__is_required=True).count()
         return total_required - answered
 
-    def get_started_at(self, obj):
+    def get_started_at(self, obj) -> datetime | None:
         submission = self._get_submission(obj)
         return submission.started_at if submission is not None else None
 
-    def get_finished_at(self, obj):
+    def get_finished_at(self, obj) -> datetime | None:
         submission = self._get_submission(obj)
         return submission.finished_at if submission is not None else None
+
+
+class AnswerDict(TypedDict):
+    id: UUID
+    option_text: str | None
+    answered_at: datetime
 
 
 class QuestionProgressSerializer(serializers.ModelSerializer):
@@ -134,7 +144,7 @@ class QuestionProgressSerializer(serializers.ModelSerializer):
         answers = self.context.get("answers", [])
         return any(a.question_id == obj.id for a in answers)
 
-    def get_answer(self, obj):
+    def get_answer(self, obj) -> AnswerDict | None:
         answers = self.context.get("answers", [])
         answer = next((a for a in answers if a.question_id == obj.id), None)
 
@@ -148,6 +158,15 @@ class QuestionProgressSerializer(serializers.ModelSerializer):
         }
 
 
+class QuestionProgressDict(TypedDict):
+    id: UUID
+    text: str
+    order: int
+    is_required: bool
+    answered: bool
+    answer: AnswerDict | None
+
+
 class RespondentProgressDetailSerializer(RespondentProgressListSerializer):
     questions = serializers.SerializerMethodField()
 
@@ -157,7 +176,7 @@ class RespondentProgressDetailSerializer(RespondentProgressListSerializer):
             "questions",
         ]
 
-    def get_questions(self, obj):
+    def get_questions(self, obj) -> list[QuestionProgressDict]:
         submission = self._get_submission(obj)
         answers = list(submission.answers.all()) if submission else []
 
