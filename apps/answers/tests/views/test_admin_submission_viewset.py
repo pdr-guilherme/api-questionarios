@@ -33,7 +33,8 @@ def test_admin_submission_list(admin_api_client, admin_submissions):
     assert len(response.data["results"]) == len(admin_submissions)
 
 
-def test_admin_submission_detail(admin_api_client, admin_submission):
+def test_admin_submission_detail(admin_api_client, admin_submissions):
+    admin_submission = admin_submissions[0]
     url = reverse(
         "answers:admin:admin-submission-detail", kwargs={"pk": str(admin_submission.id)}
     )
@@ -85,7 +86,10 @@ def test_admin_submission_list_as_respondent(respondent_api_client, admin_submis
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_admin_submission_detail_as_respondent(respondent_api_client, admin_submission):
+def test_admin_submission_detail_as_respondent(
+    respondent_api_client, admin_submissions
+):
+    admin_submission = admin_submissions[0]
     url = reverse(
         "answers:admin:admin-submission-detail", kwargs={"pk": str(admin_submission.id)}
     )
