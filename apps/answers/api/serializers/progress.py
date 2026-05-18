@@ -41,6 +41,10 @@ class SurveyProgressListSerializer(serializers.ModelSerializer):
     def get_completion_rate(self, obj) -> float:
         completed = self.get_completed(obj)
         total_respondents = self.get_total_respondents(obj)
+
+        if completed == 0 or total_respondents == 0:
+            return 0
+
         return round((completed / total_respondents) * 100, 1)
 
 
