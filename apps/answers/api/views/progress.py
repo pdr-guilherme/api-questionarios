@@ -1,4 +1,6 @@
 from django.db.models import Prefetch
+from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
@@ -14,6 +16,22 @@ from apps.core.permissions import IsAdmin
 from apps.surveys.models import Question, Survey
 
 
+@extend_schema_view(
+    list=extend_schema(
+        operation_id="progress_survey_list",
+        summary=_("Listar progresso dos questionários"),
+        description=_(
+            "Retorna todos os questionários do admin com agregações de progresso"
+        ),
+    ),
+    retrieve=extend_schema(
+        operation_id="progress_survey_detail",
+        summary=_("Detalhar progresso do questionário"),
+        description=_(
+            "Retorna o progresso detalhado de um questionário com lista de respondentes"
+        ),
+    ),
+)
 class SurveyProgressViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, IsAdmin]
     pagination_class = CustomPagination
@@ -57,6 +75,24 @@ class SurveyProgressViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
 
 
+@extend_schema_view(
+    list=extend_schema(
+        operation_id="progress_respondent_list",
+        summary=_("Listar progresso dos respondentes"),
+        description=_(
+            "Retorna todos os respondentes vinculados ao questionário "
+            "com seu progresso individual"
+        ),
+    ),
+    retrieve=extend_schema(
+        operation_id="progress_respondent_detail",
+        summary=_("Detalhar progresso do respondente"),
+        description=_(
+            "Retorna o progresso detalhado de um respondente, "
+            "incluindo todas as questões e respostas"
+        ),
+    ),
+)
 class RespondentProgressViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, IsAdmin]
     pagination_class = CustomPagination
