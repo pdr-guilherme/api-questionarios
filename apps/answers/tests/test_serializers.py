@@ -198,6 +198,7 @@ def test_respondent_progress_list_serializer(admin_accesses, admin_submissions):
     assert isinstance(serializer.data, dict)
 
     fields = [
+        "id",
         "user_id",
         "email",
         "status",
@@ -245,6 +246,7 @@ def test_respondent_progress_detail_serializer(admin_accesses, admin_submissions
     assert isinstance(serializer.data, dict)
 
     fields = [
+        "id",
         "user_id",
         "email",
         "status",

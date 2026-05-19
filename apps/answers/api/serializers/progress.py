@@ -73,6 +73,7 @@ class RespondentProgressListSerializer(serializers.ModelSerializer):
     class Meta:
         model = SurveyAccess
         fields = [
+            "id",
             "user_id",
             "email",
             "status",

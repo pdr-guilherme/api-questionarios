@@ -60,6 +60,7 @@ def test_respondent_progress_detail(admin_api_client, admin_survey, admin_access
     assert response.status_code == status.HTTP_200_OK
 
     fields = [
+        "id",
         "user_id",
         "email",
         "status",
