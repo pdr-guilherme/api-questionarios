@@ -247,6 +247,13 @@ SPECTACULAR_SETTINGS = {
                 "Operações de leitura de preenchimentos para adminstradores"
             ),
         },
+        {
+            "name": "progress",
+            "description": _(
+                "Operações de acompanhamento de progresso de resposta "
+                "para administradores"
+            ),
+        },
     ],
 }
 

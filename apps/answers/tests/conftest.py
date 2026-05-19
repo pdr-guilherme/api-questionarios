@@ -56,37 +56,26 @@ def admin_survey(admin_user):
 
 
 @pytest.fixture
-def admin_survey_access(admin_survey, respondent_user):
-    # garante que o respondente tem acesso ao survey do admin
-    return cast(
-        SurveyAccess,
-        SurveyAccessFactory(
-            survey=admin_survey,
-            user=respondent_user,
-        ),
-    )
-
-
-@pytest.fixture
-def admin_submission(admin_survey_access, respondent_user):
-    return cast(
-        Submission,
-        SubmissionFactory(
-            user=respondent_user,
-            survey=admin_survey_access.survey,
-        ),
-    )
-
-
-@pytest.fixture
-def admin_submissions(admin_survey_access):
+def admin_accesses(admin_user, admin_survey):
     return [
         cast(
-            Submission,
-            SubmissionFactory(
-                user=UserFactory(),
-                survey=admin_survey_access.survey,
+            SurveyAccess,
+            SurveyAccessFactory(
+                user=UserFactory(created_by=admin_user),
+                survey=admin_survey,
             ),
         )
-        for _ in range(3)
+        for i in range(3)
     ]
+
+
+@pytest.fixture
+def admin_submissions(admin_accesses):
+    submissions = []
+    for survey_access in admin_accesses:
+        submission = cast(
+            Submission,
+            SubmissionFactory(user=survey_access.user, survey=survey_access.survey),
+        )
+        submissions.append(submission)
+    return submissions
