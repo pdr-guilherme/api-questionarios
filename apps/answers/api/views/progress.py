@@ -1,6 +1,7 @@
 from django.db.models import Prefetch
 from django.utils.translation import gettext_lazy as _
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
@@ -75,6 +76,27 @@ class SurveyProgressViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
 
 
+respondent_viewset_params = {
+    "survey_pk": OpenApiParameter(
+        name="survey_pk",
+        description=_("string UUID que identifica unicamente este questionário"),
+        required=True,
+        type=OpenApiTypes.UUID,
+        location=OpenApiParameter.PATH,
+    ),
+    "id": OpenApiParameter(
+        name="id",
+        description=_(
+            "string UUID que identifica unicamente um objeto de acesso "
+            "usuário-questionário"
+        ),
+        required=True,
+        type=OpenApiTypes.UUID,
+        location=OpenApiParameter.PATH,
+    ),
+}
+
+
 @extend_schema_view(
     list=extend_schema(
         operation_id="progress_respondent_list",
@@ -83,6 +105,7 @@ class SurveyProgressViewSet(viewsets.ReadOnlyModelViewSet):
             "Retorna todos os respondentes vinculados ao questionário "
             "com seu progresso individual"
         ),
+        parameters=[respondent_viewset_params["survey_pk"]],
     ),
     retrieve=extend_schema(
         operation_id="progress_respondent_detail",
@@ -91,6 +114,10 @@ class SurveyProgressViewSet(viewsets.ReadOnlyModelViewSet):
             "Retorna o progresso detalhado de um respondente, "
             "incluindo todas as questões e respostas"
         ),
+        parameters=[
+            respondent_viewset_params["survey_pk"],
+            respondent_viewset_params["id"],
+        ],
     ),
 )
 class RespondentProgressViewSet(viewsets.ReadOnlyModelViewSet):
