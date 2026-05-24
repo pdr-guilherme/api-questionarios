@@ -45,17 +45,17 @@ answer_viewset_params = {
         operation_id="answer_detail",
         summary=_("Detalhar resposta"),
         description=_("Retorna os detalhes de uma resposta específica"),
-        parameters=[answer_viewset_params["submission_pk"]],
+        parameters=[
+            answer_viewset_params["submission_pk"],
+            answer_viewset_params["id"],
+        ],
     ),
     create=extend_schema(
         tags=["answers"],
         operation_id="answer_create",
         summary=_("Enviar resposta"),
         description=_("Envia ou substitui a resposta de uma questão no preenchimento"),
-        parameters=[
-            answer_viewset_params["submission_pk"],
-            answer_viewset_params["id"],
-        ],
+        parameters=[answer_viewset_params["submission_pk"]],
         responses={
             201: AnswerSerializer,
             403: OpenApiResponse(description=_("Preenchimento já concluído")),
