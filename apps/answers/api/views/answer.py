@@ -16,20 +16,20 @@ from apps.answers.permissions import SubmissionIsEditable
 from apps.core.permissions import HasSurveyAccess, IsRespondent
 from apps.surveys.models import Survey
 
-params = [
-    OpenApiParameter(
+answer_viewset_params = {
+    "submission_pk": OpenApiParameter(
         name="submission_pk",
         type=OpenApiTypes.UUID,
         location=OpenApiParameter.PATH,
         description=_("UUID do preenchimento"),
     ),
-    OpenApiParameter(
+    "id": OpenApiParameter(
         name="id",
         type=OpenApiTypes.UUID,
         location=OpenApiParameter.PATH,
         description=_("UUID da resposta"),
     ),
-]
+}
 
 
 @extend_schema_view(
@@ -38,21 +38,24 @@ params = [
         operation_id="answer_list",
         summary=_("Listar respostas"),
         description=_("Retorna todas as respostas de um preenchimento"),
-        parameters=[params[0]],
+        parameters=[answer_viewset_params["submission_pk"]],
     ),
     retrieve=extend_schema(
         tags=["answers"],
         operation_id="answer_detail",
         summary=_("Detalhar resposta"),
         description=_("Retorna os detalhes de uma resposta específica"),
-        parameters=params,
+        parameters=[answer_viewset_params["submission_pk"]],
     ),
     create=extend_schema(
         tags=["answers"],
         operation_id="answer_create",
         summary=_("Enviar resposta"),
         description=_("Envia ou substitui a resposta de uma questão no preenchimento"),
-        parameters=params,
+        parameters=[
+            answer_viewset_params["submission_pk"],
+            answer_viewset_params["id"],
+        ],
         responses={
             201: AnswerSerializer,
             403: OpenApiResponse(description=_("Preenchimento já concluído")),
@@ -63,7 +66,10 @@ params = [
         operation_id="answer_delete",
         summary=_("Apagar resposta"),
         description=_("Apaga a resposta de uma questão do preenchimento"),
-        parameters=params,
+        parameters=[
+            answer_viewset_params["submission_pk"],
+            answer_viewset_params["id"],
+        ],
     ),
 )
 class AnswerViewSet(viewsets.ModelViewSet):
