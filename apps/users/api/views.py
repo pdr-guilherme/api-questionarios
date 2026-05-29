@@ -41,7 +41,6 @@ from apps.users.models import User
                 )
             ),
         },
-        tags=["respondents"],
     ),
     list=extend_schema(
         operation_id="respondent_list",
