@@ -254,12 +254,6 @@ SPECTACULAR_SETTINGS = {
             "description": _("Operações com respostas específicas de um preenchimento"),
         },
         {
-            "name": "admin_submissions",
-            "description": _(
-                "Operações de leitura de preenchimentos para adminstradores"
-            ),
-        },
-        {
             "name": "progress",
             "description": _(
                 "Operações de acompanhamento de progresso de resposta "
